@@ -48,7 +48,7 @@ export const MatrixInput = ({ label, matrix, onChange, className = "" }: MatrixI
   };
 
   return (
-    <Card className={`p-6 bg-gradient-to-br from-card to-secondary/30 shadow-card-soft border-matrix-border transition-smooth ${className}`}>
+    <Card className={`p-6 bg-linear-to-br from-card to-secondary/30 shadow-card-soft border-matrix-border transition-smooth ${className}`}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Label className="text-lg font-semibold text-foreground">{label}</Label>

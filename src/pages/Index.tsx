@@ -190,7 +190,7 @@ const Index = () => {
         </div>
 
         <div className="space-y-6 mb-8">
-          <Card className="p-6 bg-gradient-to-r from-card to-secondary/20 shadow-card-soft">
+          <Card className="p-6 bg-linear-to-r from-card to-secondary/20 shadow-card-soft">
             <h2 className="text-xl font-semibold mb-4 text-foreground">Operaciones con dos matrices</h2>
             <div className="flex flex-wrap gap-4">
               <Button
@@ -221,7 +221,7 @@ const Index = () => {
             </div>
           </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-card to-accent/10 shadow-card-soft">
+          <Card className="p-6 bg-linear-to-r from-card to-accent/10 shadow-card-soft">
             <h2 className="text-xl font-semibold mb-4 text-foreground">Operaciones con una matriz</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>

@@ -51,7 +51,7 @@ export const StepDisplay = ({ steps, className = "" }: StepDisplayProps) => {
       {steps.map((step) => (
         <Card
           key={step.stepNumber}
-          className="p-6 bg-gradient-to-r from-card to-secondary/20 shadow-card-soft border transition-smooth hover:shadow-lg"
+          className="p-6 bg-linear-to-r from-card to-secondary/20 shadow-card-soft border transition-smooth hover:shadow-lg"
         >
           <div className="space-y-4">
             <div className="flex items-center gap-3">
