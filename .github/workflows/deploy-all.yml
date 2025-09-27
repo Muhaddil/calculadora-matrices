@@ -1,0 +1,32 @@
+name: Build
+
+run-name: Build Code
+
+on:
+  push:
+    branches: ['main']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: 'build-deploy'
+  cancel-in-progress: true
+
+jobs:
+  build-main:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v5
+
+      - name: Build App
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
