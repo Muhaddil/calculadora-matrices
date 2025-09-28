@@ -1,3 +1,7 @@
+[![Build](https://github.com/Muhaddil/calculadora-matrices/actions/workflows/deploy-all.yml/badge.svg)](https://github.com/Muhaddil/calculadora-matrices/actions/workflows/deploy-all.yml)
+[![pages-build-deployment](https://github.com/Muhaddil/calculadora-matrices/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/Muhaddil/calculadora-matrices/actions/workflows/pages/pages-build-deployment)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Muhaddil/calculadora-matrices)
+
 # Calculadora de Matrices
 
 Una aplicación web interactiva para realizar operaciones con matrices, desarrollada con React, TypeScript y Vite.
