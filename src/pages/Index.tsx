@@ -1,13 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MatrixInput } from "@/components/MatrixInput";
 import { StepDisplay, CalculationStep } from "@/components/StepDisplay";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp } from "lucide-react";
+import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw } from "lucide-react";
 import { addMatrices, subtractMatrices, multiplyMatrices, transposeMatrix, calculateDeterminant, calculateAdjugate, calculateInverse, createMatrix, Matrix, calculateRank } from "@/utils/matrixOperations";
 import { useToast } from "@/hooks/use-toast";
 import { MethodDialog } from "@/components/MethodDialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import packageJson from '../../package.json';
+
+const currentVersion = packageJson.version;
 
 const Index = () => {
   const [matrixA, setMatrixA] = useState<Matrix>(createMatrix(2, 2));
@@ -16,7 +20,32 @@ const Index = () => {
   const [currentOperation, setCurrentOperation] = useState<string>("");
   const [methodDialogOpen, setMethodDialogOpen] = useState(false);
   const [selectedMatrix, setSelectedMatrix] = useState<'A' | 'B'>('A');
+  const [remoteVersion, setRemoteVersion] = useState<string>("");
+  const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
   const { toast } = useToast();
+
+  async function checkForUpdate() {
+    try {
+      const response = await fetch('https://muhaddil.github.io/calculadora-matrices/version.json', { cache: 'no-store' });
+      const remote = await response.json();
+      if (remote.version && remote.version !== currentVersion) {
+        setRemoteVersion(remote.version);
+        setUpdateAvailable(true);
+      }
+    } catch (e) {
+      console.warn('Error comprobando actualizaciones:', e);
+    }
+  }
+
+  useEffect(() => {
+    checkForUpdate();
+
+    const interval = setInterval(() => {
+      checkForUpdate();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleOperation = (operation: 'add' | 'subtract' | 'multiply') => {
     try {
@@ -160,20 +189,50 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-bg">
+    <div className="min-h-screen bg-gradient-bg relative">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-primary rounded-full">
-              <Calculator className="h-8 w-8 text-primary-foreground" />
+        {updateAvailable && (
+          <Alert className="mb-6 border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
+            <RefreshCw className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+            <AlertTitle className="text-blue-700 dark:text-blue-400">¡Nueva versión disponible!</AlertTitle>
+            <AlertDescription className="text-blue-600 dark:text-blue-300">
+              Hay una nueva versión disponible ({remoteVersion}). La versión actual es {currentVersion}.
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-4 border-blue-500 text-blue-600 hover:bg-blue-500 hover:text-white"
+                onClick={() => window.location.reload()}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Actualizar
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-12 gap-6">
+          <div className="text-center sm:text-left flex-1">
+            <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+              <div className="p-3 bg-gradient-primary rounded-full">
+                <Calculator className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+                Calculadora de Matrices
+              </h1>
             </div>
-            <h1 className="text-4xl font-bold text-foreground">
-              Calculadora de Matrices
-            </h1>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl">
+              Realiza operaciones con matrices y visualiza cada paso del proceso
+            </p>
           </div>
-          <p className="text-xl text-muted-foreground">
-            Realiza operaciones con matrices y visualiza cada paso del proceso
-          </p>
+
+          <Button
+            onClick={() => window.open("https://muhaddil.github.io/", "_blank")}
+            className="rounded-full p-3 group whitespace-nowrap flex-shrink-0 shadow-lg hover:shadow-xl transition-all duration-300"
+            size="lg"
+          >
+            <span className="font-medium">Ver más páginas</span>
+            <ExternalLink className="h-4 w-4 ml-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -348,6 +407,13 @@ const Index = () => {
           matrixSize={selectedMatrix === 'A' ? matrixA.length : matrixB.length}
         />
       </div>
+
+      <div className="fixed bottom-4 left-4 z-10">
+        <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 shadow-md">
+          v{currentVersion}
+        </Badge>
+      </div>
+
     </div>
   );
 };
