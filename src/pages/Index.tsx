@@ -4,7 +4,7 @@ import { StepDisplay, CalculationStep } from "@/components/StepDisplay";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw } from "lucide-react";
+import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw, ChevronUp } from "lucide-react";
 import { addMatrices, subtractMatrices, multiplyMatrices, transposeMatrix, calculateDeterminant, calculateAdjugate, calculateInverse, createMatrix, Matrix, calculateRank } from "@/utils/matrixOperations";
 import { useToast } from "@/hooks/use-toast";
 import { MethodDialog } from "@/components/MethodDialog";
@@ -22,6 +22,7 @@ const Index = () => {
   const [selectedMatrix, setSelectedMatrix] = useState<'A' | 'B'>('A');
   const [remoteVersion, setRemoteVersion] = useState<string>("");
   const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
+  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
   const { toast } = useToast();
 
   async function checkForUpdate() {
@@ -186,6 +187,26 @@ const Index = () => {
   const clearResults = () => {
     setSteps([]);
     setCurrentOperation("");
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollButton(true);
+      } else {
+        setShowScrollButton(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
 
   return (
@@ -414,6 +435,16 @@ const Index = () => {
         </Badge>
       </div>
 
+      {showScrollButton && (
+        <Button
+          onClick={scrollToTop}
+          className="fixed bottom-4 right-4 z-10 rounded-full p-3 bg-gradient-primary hover:opacity-90 text-primary-foreground shadow-lg transition-smooth"
+          size="icon"
+          aria-label="Volver arriba"
+        >
+          <ChevronUp className="h-5 w-5" />
+        </Button>
+      )}
     </div>
   );
 };
