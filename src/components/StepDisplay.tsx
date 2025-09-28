@@ -75,17 +75,23 @@ export const StepDisplay = ({ steps, className = "" }: StepDisplayProps) => {
             )}
 
             {step.matrices && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {step.matrices.map((matrixInfo, index) => (
-                  <MatrixDisplay
-                    key={index}
-                    matrix={matrixInfo.matrix}
-                    label={matrixInfo.label}
-                    highlight={matrixInfo.highlight}
-                    fraction={matrixInfo.fraction}
-                    showAsFraction={matrixInfo.showAsFraction}
-                  />
-                ))}
+              <div className="w-full">
+                <div className="w-full overflow-x-auto">
+                  <div className="grid grid-flow-col auto-cols-min gap-4 items-start py-2">
+                    {step.matrices.map((matrixInfo, index) => (
+                      <div key={index} className="self-start min-w-0">
+                        <MatrixDisplay
+                          key={index}
+                          matrix={matrixInfo.matrix}
+                          label={matrixInfo.label}
+                          highlight={matrixInfo.highlight}
+                          fraction={matrixInfo.fraction}
+                          showAsFraction={matrixInfo.showAsFraction}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -45,7 +45,7 @@ export const MatrixInput = ({
         r.map((c, j) => (i === row && j === col ? "0" : c))
       );
       setMatrixStr(newMatrixStr);
-      
+
       const numericMatrix = newMatrixStr.map((r, i) =>
         r.map((v, j) => {
           if (i === row && j === col) return 0;
@@ -93,8 +93,10 @@ export const MatrixInput = ({
   };
 
   const addRow = () => {
-    const newRow = new Array(cols).fill(0);
-    onChange([...matrix, newRow]);
+    if (rows < 10) {
+      const newRow = new Array(cols).fill(0);
+      onChange([...matrix, newRow]);
+    }
   };
 
   const removeRow = () => {
@@ -105,9 +107,11 @@ export const MatrixInput = ({
   };
 
   const addCol = () => {
-    const newMatrix = matrix.map((row) => [...row, 0]);
-    onChange(newMatrix);
-    setMatrixStr((prev) => prev.map((r) => [...r, "0"]));
+    if (cols < 10) {
+      const newMatrix = matrix.map((row) => [...row, 0]);
+      onChange(newMatrix);
+      setMatrixStr((prev) => prev.map((r) => [...r, "0"]));
+    }
   };
 
   const removeCol = () => {
@@ -141,6 +145,7 @@ export const MatrixInput = ({
                 size="sm"
                 variant="outline"
                 onClick={addRow}
+                disabled={rows >= 10}
                 className="h-8 w-8 p-0"
               >
                 <Plus className="h-3 w-3" />
@@ -161,6 +166,7 @@ export const MatrixInput = ({
                 size="sm"
                 variant="outline"
                 onClick={addCol}
+                disabled={cols >= 10}
                 className="h-8 w-8 p-0"
               >
                 <Plus className="h-3 w-3" />
@@ -169,7 +175,7 @@ export const MatrixInput = ({
           </div>
         </div>
 
-        <div className="matrix-container">
+        <div className="matrix-container max-h-96 max-w-full overflow-auto">
           <div
             className="inline-grid gap-2 p-4 bg-matrix-cell rounded-lg border-2 border-matrix-border shadow-matrix"
             style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
