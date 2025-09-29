@@ -1255,3 +1255,420 @@ const getRankInterpretation = (rank: number, rows: number, cols: number): string
     return `📊 La matriz tiene rango ${rank} de un máximo posible de ${maxPossibleRank}.\n\n• Hay ${rank} filas linealmente independientes\n• Hay ${rank} columnas linealmente independientes\n• ${rows - rank} filas son combinación lineal de otras\n• ${cols - rank} columnas son combinación lineal de otras`;
   }
 };
+
+interface SystemSolutionResult {
+  solution: Matrix | null;
+  compatibility: string;
+  steps: CalculationStep[];
+  parametricSolution?: ParametricSolution;
+}
+
+interface ParametricSolution {
+  particularSolution: Matrix;
+  homogeneousBasis: Matrix[];
+  freeVariables: number[];
+  degreesOfFreedom: number;
+  parametricForm?: string;
+}
+
+export const solveLinearSystem = (A: Matrix, B: Matrix): SystemSolutionResult => {
+  const steps: CalculationStep[] = [];
+  const n = A.length;
+  const m = A[0]?.length || 0;
+  
+  if (B[0]?.length !== 1) {
+    throw new Error("El vector B debe ser una matriz columna (n×1)");
+  }
+  
+  if (B.length !== n) {
+    throw new Error("El número de filas de A y B deben coincidir");
+  }
+
+  steps.push({
+    stepNumber: 1,
+    title: "Verificación del sistema",
+    description: `Sistema de ecuaciones: ${n} ecuaciones con ${m} incógnitas\n\nForma matricial: A·X = B\nDonde A es la matriz de coeficientes y B es el vector de términos independientes.`,
+    matrices: [
+      { label: "\\text{Matriz } A", matrix: A },
+      { label: "\\text{Vector } B", matrix: B }
+    ],
+  });
+
+  const augmentedMatrix: Matrix = A.map((row, i) => [...row, B[i][0]]);
+  
+  steps.push({
+    stepNumber: 2,
+    title: "Matriz ampliada",
+    description: "Construimos la matriz ampliada [A|B] añadiendo el vector B como última columna:",
+    matrices: [
+      { label: "\\text{Matriz Ampliada } [A|B]", matrix: augmentedMatrix, highlight: true }
+    ],
+  });
+
+  const rankA = calculateRankSimple(A);
+  const rankAugmented = calculateRankSimple(augmentedMatrix);
+  
+  steps.push({
+    stepNumber: 3,
+    title: "Cálculo de rangos",
+    description: `Aplicamos el Teorema de Rouché-Frobenius:\n• Rango de A: ${rankA}\n• Rango de [A|B]: ${rankAugmented}\n• Número de incógnitas: ${m}`,
+    formula: `\\text{rg}(A) = ${rankA}, \\quad \\text{rg}([A|B]) = ${rankAugmented}, \\quad n = ${m}`
+  });
+
+  let compatibility: string;
+  let solution: Matrix | null = null;
+  let parametricSolution: ParametricSolution | null = null;
+  
+  if (rankA !== rankAugmented) {
+    compatibility = "INCOMPATIBLE";
+    steps.push({
+      stepNumber: 4,
+      title: "Sistema INCOMPATIBLE",
+      description: `El sistema no tiene solución porque los rangos no coinciden:\nrg(A) = ${rankA} ≠ rg([A|B]) = ${rankAugmented}\n\nNo existe ningún vector X que satisfaga todas las ecuaciones simultáneamente.`,
+      formula: `\\text{rg}(A) \\neq \\text{rg}([A|B]) \\Rightarrow \\text{Sistema INCOMPATIBLE}`
+    });
+  } else if (rankA === m) {
+    compatibility = "COMPATIBLE DETERMINADO";
+    solution = solveWithGaussianElimination(A, B, steps);
+  } else {
+    compatibility = "COMPATIBLE INDETERMINADO";
+    const degreesOfFreedom = m - rankA;
+    
+    steps.push({
+      stepNumber: 4,
+      title: "Sistema COMPATIBLE INDETERMINADO",
+      description: `El sistema tiene infinitas soluciones porque:\n• rg(A) = rg([A|B]) = ${rankA}\n• rg(A) < n = ${m} (número de incógnitas)\n\nGrados de libertad: ${degreesOfFreedom}\nExpresamos la solución en función de ${degreesOfFreedom} parámetros.`,
+      formula: `\\text{Grados de libertad} = n - \\text{rg}(A) = ${degreesOfFreedom}`
+    });
+    
+    parametricSolution = solveIndeterminateSystemComplete(A, B, steps);
+    solution = parametricSolution.particularSolution;
+  }
+
+  return { solution, compatibility, steps, parametricSolution };
+};
+
+const solveWithGaussianElimination = (A: Matrix, B: Matrix, steps: CalculationStep[]): Matrix => {
+  const n = A.length;
+  const m = A[0].length;
+  let augmented: Matrix = A.map((row, i) => [...row, B[i][0]]);
+  
+  steps.push({
+    stepNumber: steps.length + 1,
+    title: "Método: Eliminación Gaussiana",
+    description: "Aplicamos eliminación gaussiana para triangularizar la matriz ampliada:",
+    matrices: [
+      { label: "\\text{Matriz ampliada inicial}", matrix: augmented }
+    ]
+  });
+
+  let stepCounter = steps.length + 1;
+
+  for (let pivot = 0; pivot < Math.min(n, m); pivot++) {
+    let maxRow = pivot;
+    for (let i = pivot + 1; i < n; i++) {
+      if (Math.abs(augmented[i][pivot]) > Math.abs(augmented[maxRow][pivot])) {
+        maxRow = i;
+      }
+    }
+    
+    if (Math.abs(augmented[maxRow][pivot]) < 1e-10) {
+      continue;
+    }
+    
+    if (maxRow !== pivot) {
+      [augmented[pivot], augmented[maxRow]] = [augmented[maxRow], augmented[pivot]];
+      steps.push({
+        stepNumber: stepCounter++,
+        title: `Intercambio de filas`,
+        description: `Intercambiamos fila ${pivot + 1} con fila ${maxRow + 1} para tener el mayor pivote.`,
+        matrices: [
+          { label: `\\text{Después del intercambio}`, matrix: augmented }
+        ]
+      });
+    }
+
+    const pivotValue = augmented[pivot][pivot];
+    if (Math.abs(pivotValue) > 1e-10) {
+      for (let j = pivot; j <= m; j++) {
+        augmented[pivot][j] /= pivotValue;
+      }
+      
+      steps.push({
+        stepNumber: stepCounter++,
+        title: `Normalización del pivote`,
+        description: `Dividimos la fila ${pivot + 1} por ${pivotValue.toFixed(4)} para hacer el pivote igual a 1.`,
+        matrices: [
+          { label: `\\text{Después de normalizar}`, matrix: augmented }
+        ]
+      });
+    }
+
+    for (let i = pivot + 1; i < n; i++) {
+      const factor = augmented[i][pivot];
+      
+      if (Math.abs(factor) > 1e-10) {
+        for (let j = pivot; j <= m; j++) {
+          augmented[i][j] -= factor * augmented[pivot][j];
+        }
+        
+        steps.push({
+          stepNumber: stepCounter++,
+          title: `Eliminación en fila ${i + 1}`,
+          description: `F${i + 1} = F${i + 1} - (${factor.toFixed(4)}) × F${pivot + 1}`,
+          matrices: [
+            { label: `\\text{Después de eliminar}`, matrix: augmented }
+          ]
+        });
+      }
+    }
+  }
+
+  const solution: Matrix = createMatrix(m, 1);
+  const usedRows: boolean[] = new Array(m).fill(false);
+  
+  for (let i = Math.min(n, m) - 1; i >= 0; i--) {
+    let pivotCol = -1;
+    for (let j = 0; j < m; j++) {
+      if (Math.abs(augmented[i][j]) > 1e-10 && !usedRows[j]) {
+        pivotCol = j;
+        usedRows[j] = true;
+        break;
+      }
+    }
+    
+    if (pivotCol === -1) continue;
+    
+    let sum = 0;
+    for (let j = pivotCol + 1; j < m; j++) {
+      sum += augmented[i][j] * solution[j][0];
+    }
+    solution[pivotCol][0] = augmented[i][m] - sum;
+  }
+
+  steps.push({
+    stepNumber: stepCounter++,
+    title: "Sustitución hacia atrás",
+    description: "Resolvemos el sistema triangular:",
+    formula: "x_i = b_i - \\sum_{j=i+1}^{n} a_{ij}x_j",
+    matrices: [
+      { label: "\\text{Solución final}", matrix: solution, highlight: true }
+    ]
+  });
+
+  return solution;
+};
+
+const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: CalculationStep[]): ParametricSolution => {
+  const n = A.length;
+  const m = A[0].length;
+  
+  let augmented: Matrix = A.map((row, i) => [...row, B[i][0]]);
+  
+  steps.push({
+    stepNumber: steps.length + 1,
+    title: "Eliminación Gaussiana-Jordan",
+    description: "Aplicamos eliminación completa para obtener la forma escalonada reducida:",
+    matrices: [
+      { label: "\\text{Matriz ampliada inicial}", matrix: augmented }
+    ]
+  });
+
+  let stepCounter = steps.length + 1;
+  
+  let pivotRow = 0;
+  const pivotColumns: number[] = [];
+  
+  for (let col = 0; col < m && pivotRow < n; col++) {
+    let maxRow = pivotRow;
+    for (let i = pivotRow + 1; i < n; i++) {
+      if (Math.abs(augmented[i][col]) > Math.abs(augmented[maxRow][col])) {
+        maxRow = i;
+      }
+    }
+    
+    if (Math.abs(augmented[maxRow][col]) < 1e-10) {
+      continue;
+    }
+    
+    if (maxRow !== pivotRow) {
+      [augmented[pivotRow], augmented[maxRow]] = [augmented[maxRow], augmented[pivotRow]];
+      steps.push({
+        stepNumber: stepCounter++,
+        title: `Intercambio de filas`,
+        description: `Intercambiamos fila ${pivotRow + 1} con fila ${maxRow + 1}`,
+        matrices: [
+          { label: `\\text{Después del intercambio}`, matrix: augmented }
+        ]
+      });
+    }
+    
+    const pivotValue = augmented[pivotRow][col];
+    for (let j = col; j <= m; j++) {
+      augmented[pivotRow][j] /= pivotValue;
+    }
+    
+    steps.push({
+      stepNumber: stepCounter++,
+      title: `Normalización del pivote en columna ${col + 1}`,
+      description: `Dividimos la fila ${pivotRow + 1} por ${pivotValue.toFixed(4)}`,
+      matrices: [
+        { label: `\\text{Después de normalizar}`, matrix: augmented }
+      ]
+    });
+    
+    for (let i = 0; i < n; i++) {
+      if (i !== pivotRow && Math.abs(augmented[i][col]) > 1e-10) {
+        const factor = augmented[i][col];
+        for (let j = col; j <= m; j++) {
+          augmented[i][j] -= factor * augmented[pivotRow][j];
+        }
+        
+        steps.push({
+          stepNumber: stepCounter++,
+          title: `Eliminación en fila ${i + 1}`,
+          description: `F${i + 1} = F${i + 1} - (${factor.toFixed(4)}) × F${pivotRow + 1}`,
+          matrices: [
+            { label: `\\text{Después de eliminar}`, matrix: augmented }
+          ]
+        });
+      }
+    }
+    
+    pivotColumns.push(col);
+    pivotRow++;
+  }
+
+  const freeVariables: number[] = [];
+  for (let col = 0; col < m; col++) {
+    if (!pivotColumns.includes(col)) {
+      freeVariables.push(col);
+    }
+  }
+  
+  const degreesOfFreedom = freeVariables.length;
+  
+  const particularSolution: Matrix = createMatrix(m, 1);
+  for (let i = 0; i < pivotColumns.length; i++) {
+    const pivotCol = pivotColumns[i];
+    particularSolution[pivotCol][0] = augmented[i][m];
+  }
+  
+  const homogeneousBasis: Matrix[] = [];
+  
+  for (const freeVar of freeVariables) {
+    const basisVector: Matrix = createMatrix(m, 1);
+    basisVector[freeVar][0] = 1;
+    
+    for (let i = 0; i < pivotColumns.length; i++) {
+      const pivotCol = pivotColumns[i];
+      basisVector[pivotCol][0] = -augmented[i][freeVar];
+    }
+    
+    homogeneousBasis.push(basisVector);
+  }
+  
+  let parametricForm = "X = X_p";
+  const paramNames = ['t', 's', 'u', 'v', 'w'];
+  
+  for (let i = 0; i < homogeneousBasis.length; i++) {
+    parametricForm += ` + ${paramNames[i]} \\cdot X_${i + 1}`;
+  }
+  
+  steps.push({
+    stepNumber: stepCounter++,
+    title: "Solución Paramétrica Completa",
+    description: `Sistema compatible indeterminado con ${degreesOfFreedom} grados de libertad.\n\nSolución general: ${parametricForm}\nDonde X_p es la solución particular y X_i son los vectores de la base del espacio solución homogéneo.`,
+    formula: parametricForm,
+    matrices: [
+      { 
+        label: "\\text{Forma escalonada reducida}", 
+        matrix: augmented 
+      },
+      { 
+        label: "\\text{Solución particular } X_p", 
+        matrix: particularSolution,
+        highlight: true 
+      }
+    ]
+  });
+
+  for (let i = 0; i < homogeneousBasis.length; i++) {
+    steps.push({
+      stepNumber: stepCounter++,
+      title: `Vector de la base homogénea X_${i + 1}`,
+      description: `Vector ${i + 1} de la base del espacio solución del sistema homogéneo A·X = 0.\nCorresponde al parámetro libre ${paramNames[i]}.`,
+      matrices: [
+        { 
+          label: `X_${i + 1} = \\text{base del núcleo}`,
+          matrix: homogeneousBasis[i]
+        }
+      ]
+    });
+  }
+
+  if (homogeneousBasis.length > 0) {
+    const exampleSolution = createMatrix(m, 1);
+    for (let i = 0; i < m; i++) {
+      exampleSolution[i][0] = particularSolution[i][0] + homogeneousBasis[0][i][0]; // X_p + t*X_1
+    }
+    
+    steps.push({
+      stepNumber: stepCounter++,
+      title: "Ejemplo de Solución General",
+      description: `Ejemplo: X = X_p + ${paramNames[0]}·X_1\nPara ${paramNames[0]} = 1, obtenemos una solución particular del sistema.`,
+      matrices: [
+        { 
+          label: `X = X_p + ${paramNames[0]}·X_1`,
+          matrix: exampleSolution
+        }
+      ]
+    });
+  }
+
+  return {
+    particularSolution,
+    homogeneousBasis,
+    freeVariables,
+    degreesOfFreedom,
+    parametricForm
+  };
+};
+
+const calculateRankSimple = (matrix: Matrix): number => {
+  if (matrix.length === 0) return 0;
+  
+  const n = matrix.length;
+  const m = matrix[0].length;
+  
+  const temp: Matrix = matrix.map(row => [...row]);
+  let rank = 0;
+  
+  for (let col = 0; col < m && rank < n; col++) {
+    let pivotRow = -1;
+    
+    for (let i = rank; i < n; i++) {
+      if (Math.abs(temp[i][col]) > 1e-10) {
+        pivotRow = i;
+        break;
+      }
+    }
+    
+    if (pivotRow === -1) continue;
+    
+    if (pivotRow !== rank) {
+      [temp[rank], temp[pivotRow]] = [temp[pivotRow], temp[rank]];
+    }
+    
+    for (let i = rank + 1; i < n; i++) {
+      const factor = temp[i][col] / temp[rank][col];
+      for (let j = col; j < m; j++) {
+        temp[i][j] -= factor * temp[rank][j];
+      }
+    }
+    
+    rank++;
+  }
+  
+  return rank;
+};

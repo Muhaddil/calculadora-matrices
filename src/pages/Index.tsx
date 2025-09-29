@@ -4,8 +4,8 @@ import { StepDisplay, CalculationStep } from "@/components/StepDisplay";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw, ChevronUp } from "lucide-react";
-import { addMatrices, subtractMatrices, multiplyMatrices, transposeMatrix, calculateDeterminant, calculateAdjugate, calculateInverse, createMatrix, Matrix, calculateRank } from "@/utils/matrixOperations";
+import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw, ChevronUp, BookOpen, Zap } from "lucide-react";
+import { addMatrices, subtractMatrices, multiplyMatrices, transposeMatrix, calculateDeterminant, calculateAdjugate, calculateInverse, createMatrix, Matrix, calculateRank, solveLinearSystem } from "@/utils/matrixOperations";
 import { useToast } from "@/hooks/use-toast";
 import { MethodDialog } from "@/components/MethodDialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -23,6 +23,12 @@ const Index = () => {
   const [remoteVersion, setRemoteVersion] = useState<string>("");
   const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
   const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
+
+  const [systemMatrixA, setSystemMatrixA] = useState<Matrix>(createMatrix(2, 2));
+  const [systemVectorB, setSystemVectorB] = useState<Matrix>(createMatrix(2, 1));
+  const [systemSolution, setSystemSolution] = useState<Matrix | null>(null);
+  const [systemCompatibility, setSystemCompatibility] = useState<string>("");
+
   const { toast } = useToast();
 
   async function checkForUpdate() {
@@ -184,9 +190,54 @@ const Index = () => {
     }
   };
 
+  const handleSystemSolve = () => {
+    try {
+      const numericA = systemMatrixA.map(row =>
+        row.map(cell => {
+          if (typeof cell === 'number') return cell;
+          const str = cell.toString().toLowerCase();
+          if (str === 'x' || str === 'y' || str === 'z') return 1;
+          const parsed = parseFloat(cell);
+          return isNaN(parsed) ? 0 : parsed;
+        })
+      );
+
+      const numericB = systemVectorB.map(row =>
+        row.map(cell => {
+          if (typeof cell === 'number') return cell;
+          const parsed = parseFloat(cell);
+          return isNaN(parsed) ? 0 : parsed;
+        })
+      );
+
+      const result = solveLinearSystem(numericA, numericB);
+      setSteps(result.steps);
+      setCurrentOperation("Sistema de Ecuaciones");
+      setSystemSolution(result.solution);
+      setSystemCompatibility(result.compatibility);
+
+      toast({
+        title: "¡Sistema resuelto!",
+        description: `Sistema ${result.compatibility.toLowerCase()} resuelto exitosamente.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error en la resolución",
+        description: error instanceof Error ? error.message : "Error desconocido",
+        variant: "destructive",
+      });
+      setSteps([]);
+      setCurrentOperation("");
+      setSystemSolution(null);
+      setSystemCompatibility("");
+    }
+  };
+
   const clearResults = () => {
     setSteps([]);
     setCurrentOperation("");
+    setSystemSolution(null);
+    setSystemCompatibility("");
   };
 
   useEffect(() => {
@@ -261,11 +312,13 @@ const Index = () => {
             label="Matriz A"
             matrix={matrixA}
             onChange={setMatrixA}
+            allowVariables={false}
           />
           <MatrixInput
             label="Matriz B"
             matrix={matrixB}
             onChange={setMatrixB}
+            allowVariables={false}
           />
         </div>
 
@@ -396,25 +449,87 @@ const Index = () => {
                 </div>
               </div>
             </div>
-
-            {steps.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-border">
-                <Button
-                  onClick={clearResults}
-                  variant="ghost"
-                  className="text-muted-foreground hover:text-foreground transition-smooth"
-                >
-                  Limpiar resultados
-                </Button>
-              </div>
-            )}
           </Card>
+
+          <Card className="p-6 bg-linear-to-r from-card to-purple-500/10 shadow-card-soft border-2 border-purple-200">
+            <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-purple-500" />
+              Sistemas de Ecuaciones Lineales
+            </h2>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-3 text-foreground">Matriz de Coeficientes (A)</h3>
+                  <MatrixInput
+                    label=""
+                    matrix={systemMatrixA}
+                    onChange={setSystemMatrixA}
+                    allowVariables={true}
+                  />
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-medium mb-3 text-foreground">Vector Términos Independientes (B)</h3>
+                  <MatrixInput
+                    label=""
+                    matrix={systemVectorB}
+                    onChange={setSystemVectorB}
+                    allowVariables={true}
+                    forceSingleColumn={true}
+                    showControls={false}
+                    systemMatrixA={systemMatrixA}
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSystemSolve}
+                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg transition-smooth w-full py-3"
+                size="lg"
+              >
+                <Zap className="mr-2 h-5 w-5" />
+                Resolver Sistema A·X = B
+              </Button>
+
+              {systemCompatibility && (
+                <div className="mt-4 p-4 bg-step-highlight rounded-lg border border-purple-200">
+                  <div className="flex items-center gap-3">
+                    <Badge className={
+                      systemCompatibility.includes("COMPATIBLE")
+                        ? "bg-green-500 text-white"
+                        : "bg-yellow-500 text-white"
+                    }>
+                      {systemCompatibility}
+                    </Badge>
+                    {systemSolution && (
+                      <span className="text-sm text-muted-foreground">
+                        Solución encontrada - Ver pasos abajo
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {steps.length > 0 && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <Button
+                onClick={clearResults}
+                variant="ghost"
+                className="text-muted-foreground hover:text-foreground transition-smooth"
+              >
+                Limpiar resultados
+              </Button>
+            </div>
+          )}
         </div>
 
         {currentOperation && (
           <div className="mb-6">
             <Badge className="bg-gradient-accent text-accent-foreground px-4 py-2 text-lg">
-              {currentOperation} de Matrices
+              {currentOperation}
             </Badge>
           </div>
         )}

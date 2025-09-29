@@ -10,6 +10,10 @@ interface MatrixInputProps {
   matrix: number[][];
   onChange: (matrix: number[][]) => void;
   className?: string;
+  allowVariables?: boolean;
+  showControls?: boolean;
+  forceSingleColumn?: boolean;
+  systemMatrixA?: number[][];
 }
 
 export const MatrixInput = ({
@@ -17,6 +21,10 @@ export const MatrixInput = ({
   matrix,
   onChange,
   className = "",
+  allowVariables = false,
+  showControls = true,
+  forceSingleColumn = false,
+  systemMatrixA = [[]],
 }: MatrixInputProps) => {
   const rows = matrix.length;
   const cols = matrix[0]?.length || 0;
@@ -29,68 +37,89 @@ export const MatrixInput = ({
     setMatrixStr(matrix.map((row) => row.map((cell) => cell.toString())));
   }, [rows, cols]);
 
-  const isValidNumberInput = (value: string) => {
-    return /^-?\d*\.?\d*$/.test(value);
-  };
+  const parseExpression = (value: string): number => {
+    if (!value || value === "-" || value === "." || value === "-.") return 0;
 
-  const isFullyNumeric = (value: string) => {
-    if (value === "" || value === "-" || value === "." || value === "-.") return false;
-    const n = parseFloat(value);
-    return !isNaN(n);
+    value = value.trim();
+
+    if (/^-?\d*\.?\d+$/.test(value)) {
+      return parseFloat(value);
+    }
+
+    if (/^[a-zA-Z][a-zA-Z0-9]*$/.test(value)) {
+      return 1;
+    }
+
+    if (/^-[a-zA-Z][a-zA-Z0-9]*$/.test(value)) {
+      return -1;
+    }
+
+    const coefMatch = value.match(/^(-?)(\d*\.?\d*)([a-zA-Z][a-zA-Z0-9]*)$/);
+    if (coefMatch) {
+      const [_, sign, numStr, variable] = coefMatch;
+      let num = numStr === '' ? 1 : parseFloat(numStr);
+      if (sign === '-') num = -num;
+      return num;
+    }
+
+    const explicitMultMatch = value.match(/^(-?)(\d*\.?\d*)\s*\*\s*([a-zA-Z][a-zA-Z0-9]*)$/);
+    if (explicitMultMatch) {
+      const [_, sign, numStr, variable] = explicitMultMatch;
+      let num = numStr === '' ? 1 : parseFloat(numStr);
+      if (sign === '-') num = -num;
+      return num;
+    }
+
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
   };
 
   const updateCell = (row: number, col: number, value: string) => {
-    if (value === "") {
-      const newMatrixStr = matrixStr.map((r, i) =>
-        r.map((c, j) => (i === row && j === col ? "0" : c))
-      );
-      setMatrixStr(newMatrixStr);
-
-      const numericMatrix = newMatrixStr.map((r, i) =>
-        r.map((v, j) => {
-          if (i === row && j === col) return 0;
-          const parsed = parseFloat(v);
-          return isNaN(parsed) ? matrix[i][j] : parsed;
-        })
-      );
-      onChange(numericMatrix);
-      return;
-    }
-
-    if (value.startsWith("0-") && value.length > 2) {
-      const newValue = `-${value.slice(2)}`;
-      if (isValidNumberInput(newValue)) {
-        updateCell(row, col, newValue);
-      }
-      return;
-    }
-
-    if (value.startsWith("0") && value.length > 1 && value[1] !== ".") {
-      const newValue = value.replace(/^0+/, '');
-      if (isValidNumberInput(newValue)) {
-        updateCell(row, col, newValue || "0");
-      }
-      return;
-    }
-
-    if (!isValidNumberInput(value)) return;
-
     const newMatrixStr = matrixStr.map((r, i) =>
       r.map((c, j) => (i === row && j === col ? value : c))
     );
 
     setMatrixStr(newMatrixStr);
 
-    if (isFullyNumeric(value)) {
+    if (allowVariables) {
+      const mixedMatrix = newMatrixStr.map((r, i) =>
+        r.map((v, j) => {
+          if (v === "" || v === "-" || v === "." || v === "-.") return 0;
+
+          return parseExpression(v);
+        })
+      );
+      onChange(mixedMatrix);
+    } else {
       const numericMatrix = newMatrixStr.map((r, i) =>
         r.map((v, j) => {
+          if (v === "" || v === "-" || v === "." || v === "-.") return 0;
           const parsed = parseFloat(v);
-          return isNaN(parsed) ? matrix[i][j] : parsed;
+          return isNaN(parsed) ? 0 : parsed;
         })
       );
       onChange(numericMatrix);
     }
   };
+
+  const handleInputChange = (row: number, col: number, value: string) => {
+    if (allowVariables) {
+      updateCell(row, col, value);
+    } else {
+      if (value === "" || value === "-" || value === "." || value === "-." || /^-?\d*\.?\d*$/.test(value)) {
+        updateCell(row, col, value);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (forceSingleColumn) {
+      const newRows = systemMatrixA.length;
+      const newMatrix = Array.from({ length: newRows }, (_, i) => [matrix[i]?.[0] || 0]);
+      onChange(newMatrix);
+      setMatrixStr(newMatrix.map(row => row.map(cell => cell.toString())));
+    }
+  }, [systemMatrixA.length]);
 
   const addRow = () => {
     if (rows < 10) {
@@ -107,6 +136,7 @@ export const MatrixInput = ({
   };
 
   const addCol = () => {
+    if (forceSingleColumn) return;
     if (cols < 10) {
       const newMatrix = matrix.map((row) => [...row, 0]);
       onChange(newMatrix);
@@ -115,6 +145,7 @@ export const MatrixInput = ({
   };
 
   const removeCol = () => {
+    if (forceSingleColumn) return;
     if (cols > 1) {
       const newMatrix = matrix.map((row) => row.slice(0, -1));
       onChange(newMatrix);
@@ -127,53 +158,59 @@ export const MatrixInput = ({
       className={`p-6 bg-linear-to-br from-card to-secondary/30 shadow-card-soft border-matrix-border transition-smooth ${className}`}
     >
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <Label className="text-lg font-semibold text-foreground">{label}</Label>
-          <div className="flex gap-2">
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={removeRow}
-                disabled={rows <= 1}
-                className="h-8 w-8 p-0"
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <span className="text-sm text-muted-foreground px-2">{rows}</span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={addRow}
-                disabled={rows >= 10}
-                className="h-8 w-8 p-0"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={removeCol}
-                disabled={cols <= 1}
-                className="h-8 w-8 p-0"
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <span className="text-sm text-muted-foreground px-2">{cols}</span>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={addCol}
-                disabled={cols >= 10}
-                className="h-8 w-8 p-0"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
+        {showControls && (
+          <div className="flex items-center justify-between">
+            <Label className="text-lg font-semibold text-foreground">{label}</Label>
+            <div className="flex gap-2">
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={removeRow}
+                  disabled={rows <= 1}
+                  className="h-8 w-8 p-0"
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="text-sm text-muted-foreground px-2">{rows}</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={addRow}
+                  disabled={rows >= 10}
+                  className="h-8 w-8 p-0"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={removeCol}
+                  disabled={cols <= 1}
+                  className="h-8 w-8 p-0"
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="text-sm text-muted-foreground px-2">{cols}</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={addCol}
+                  disabled={cols >= 10}
+                  className="h-8 w-8 p-0"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {!showControls && label && (
+          <Label className="text-lg font-semibold text-foreground">{label}</Label>
+        )}
 
         <div className="matrix-container max-h-96 max-w-full overflow-auto">
           <div
@@ -186,14 +223,23 @@ export const MatrixInput = ({
                   key={`${i}-${j}`}
                   type="text"
                   value={cell}
-                  onChange={(e) => updateCell(i, j, e.target.value)}
-                  className="w-16 h-12 text-center font-mono text-sm border-matrix-border focus:border-primary focus:ring-primary/20"
+                  onChange={(e) => handleInputChange(i, j, e.target.value)}
+                  className="w-12 h-10 text-center font-mono text-sm border-matrix-border focus:border-primary focus:ring-primary/20 min-w-[3rem]"
+                  placeholder="0"
                 />
               ))
             )}
           </div>
         </div>
       </div>
+
+      <br />
+
+      {allowVariables && (
+        <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 p-2 rounded border border-blue-200 dark:border-blue-800">
+          💡 Puedes ingresar números, variables (x, y, z) o expresiones simples
+        </div>
+      )}
     </Card>
   );
 };
