@@ -1261,6 +1261,7 @@ interface SystemSolutionResult {
   compatibility: string;
   steps: CalculationStep[];
   parametricSolution?: ParametricSolution;
+  cramerApplied?: boolean;
 }
 
 interface ParametricSolution {
@@ -1671,4 +1672,183 @@ const calculateRankSimple = (matrix: Matrix): number => {
   }
   
   return rank;
+};
+
+export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutionResult => {
+  const steps: CalculationStep[] = [];
+  const n = A.length;
+  const m = A[0]?.length || 0;
+  
+  if (B[0]?.length !== 1) {
+    throw new Error("El vector B debe ser una matriz columna (n×1)");
+  }
+  
+  if (B.length !== n) {
+    throw new Error("El número de filas de A y B deben coincidir");
+  }
+
+  if (n !== m) {
+    throw new Error("La regla de Cramer solo se aplica a sistemas cuadrados (mismo número de ecuaciones que incógnitas)");
+  }
+
+  steps.push({
+    stepNumber: 1,
+    title: "Regla de Cramer - Verificación inicial",
+    description: `Sistema cuadrado: ${n} ecuaciones con ${n} incógnitas\n\nLa regla de Cramer establece que cada incógnita xᵢ se calcula como:\nxᵢ = det(Aᵢ) / det(A)\nDonde Aᵢ es la matriz A con la columna i reemplazada por el vector B.`,
+    matrices: [
+      { label: "\\text{Matriz de coeficientes } A", matrix: A },
+      { label: "\\text{Vector de términos independientes } B", matrix: B }
+    ],
+  });
+
+  steps.push({
+    stepNumber: 2,
+    title: "Paso 1: Calcular determinante de A",
+    description: "Calculamos el determinante de la matriz de coeficientes A.\nSi det(A) = 0, el sistema no tiene solución única y Cramer no es aplicable.",
+    formula: "\\text{det}(A) = ?"
+  });
+
+  const detAResult = calculateDeterminant(A, 'cofactors');
+  const detA = detAResult.result[0][0];
+
+  steps.push({
+    stepNumber: 3,
+    title: "Resultado: Determinante de A",
+    description: `El determinante de la matriz A es:`,
+    formula: `\\text{det}(A) = ${detA}`,
+    matrices: [
+      { label: "\\text{det}(A)", matrix: [[detA]], highlight: true }
+    ]
+  });
+
+  if (Math.abs(detA) < 1e-10) {
+    steps.push({
+      stepNumber: 4,
+      title: "❌ Cramer no aplicable",
+      description: `El determinante de A es cero (det(A) = ${detA}).\n\nLa regla de Cramer no puede aplicarse porque:\n• El sistema puede ser incompatible\n• O puede tener infinitas soluciones\n\nUsa eliminación gaussiana para analizar este caso.`,
+      formula: "\\text{det}(A) = 0 \\Rightarrow \\text{Cramer no aplicable}"
+    });
+
+    return {
+      solution: null,
+      compatibility: "NO APLICABLE (det(A) = 0)",
+      steps,
+      parametricSolution: undefined
+    };
+  }
+
+  steps.push({
+    stepNumber: 4,
+    title: "✅ Cramer aplicable",
+    description: `El determinante de A es diferente de cero (det(A) = ${detA}).\n\nPodemos aplicar la regla de Cramer para encontrar la solución única del sistema.`,
+    formula: `\\text{det}(A) = ${detA} \\neq 0 \\Rightarrow \\text{Sistema Compatible Determinado}`
+  });
+
+  const solution: Matrix = createMatrix(n, 1);
+  const cramerCalculations: string[] = [];
+
+  steps.push({
+    stepNumber: 5,
+    title: "Paso 2: Calcular determinantes de matrices Aᵢ",
+    description: `Para cada incógnita xᵢ, construimos la matriz Aᵢ reemplazando la columna i de A por el vector B, y calculamos su determinante.`,
+    formula: `x_i = \\frac{\\text{det}(A_i)}{\\text{det}(A)}`
+  });
+
+  for (let i = 0; i < n; i++) {
+    const Ai: Matrix = A.map((row, rowIndex) => 
+      row.map((value, colIndex) => 
+        colIndex === i ? B[rowIndex][0] : value
+      )
+    );
+
+    steps.push({
+      stepNumber: 6 + i * 3,
+      title: `Matriz A${i + 1}`,
+      description: `Matriz A con la columna ${i + 1} reemplazada por el vector B:`,
+      matrices: [
+        { 
+          label: `A_{${i + 1}} = A \\text{ con columna } ${i + 1} \\rightarrow B`, 
+          matrix: Ai,
+          highlight: true 
+        }
+      ]
+    });
+
+    const detAiResult = calculateDeterminant(Ai, 'cofactors');
+    const detAi = detAiResult.result[0][0];
+
+    steps.push({
+      stepNumber: 7 + i * 3,
+      title: `Determinante de A${i + 1}`,
+      description: `Calculamos el determinante de la matriz A${i + 1}:`,
+      formula: `\\text{det}(A_{${i + 1}}) = ${detAi}`,
+      matrices: [
+        { label: `\\text{det}(A_{${i + 1}})`, matrix: [[detAi]] }
+      ]
+    });
+
+    const xi = detAi / detA;
+    solution[i][0] = xi;
+
+    cramerCalculations.push(
+      `x_{${i + 1}} = \\frac{\\text{det}(A_{${i + 1}})}{\\text{det}(A)} = \\frac{${detAi}}{${detA}} = ${xi.toFixed(6)}`
+    );
+
+    steps.push({
+      stepNumber: 8 + i * 3,
+      title: `Cálculo de x${i + 1}`,
+      description: `Aplicamos la fórmula de Cramer para x${i + 1}:`,
+      formula: `x_{${i + 1}} = \\frac{\\text{det}(A_{${i + 1}})}{\\text{det}(A)} = \\frac{${detAi}}{${detA}} = ${xi.toFixed(6)}`,
+      matrices: [
+        { 
+          label: `x_{${i + 1}}`, 
+          matrix: [[xi]], 
+          highlight: true 
+        }
+      ]
+    });
+  }
+
+  steps.push({
+    stepNumber: 6 + n * 3,
+    title: "Resumen de cálculos con Cramer",
+    description: "Resumen de todas las incógnitas calculadas:",
+    formula: cramerCalculations.join(" \\\\ "),
+    matrices: [
+      { 
+        label: "\\text{Solución final del sistema}", 
+        matrix: solution, 
+        highlight: true 
+      }
+    ]
+  });
+
+  steps.push({
+    stepNumber: 7 + n * 3,
+    title: "Verificación de la solución",
+    description: "Comprobamos que la solución satisface el sistema original A·X = B:",
+    formula: "A \\cdot X \\approx B"
+  });
+
+  const verification = multiplyMatrices(A, solution);
+  const error = verification.result.map((row, i) => 
+    Math.abs(row[0] - B[i][0])
+  ).reduce((sum, err) => sum + err, 0);
+
+  steps.push({
+    stepNumber: 8 + n * 3,
+    title: "Resultado de la verificación",
+    description: `Error total: ${error.toFixed(10)}\n\nLa solución obtenida con Cramer ${error < 1e-8 ? 'sí' : 'no'} satisface el sistema dentro de la tolerancia numérica.`,
+    matrices: [
+      { label: "A \\cdot X", matrix: verification.result },
+      { label: "B", matrix: B }
+    ]
+  });
+
+  return {
+    solution,
+    compatibility: "COMPATIBLE DETERMINADO (Cramer)",
+    steps,
+    parametricSolution: undefined
+  };
 };

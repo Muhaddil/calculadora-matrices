@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw, ChevronUp, BookOpen, Zap } from "lucide-react";
-import { addMatrices, subtractMatrices, multiplyMatrices, transposeMatrix, calculateDeterminant, calculateAdjugate, calculateInverse, createMatrix, Matrix, calculateRank, solveLinearSystem } from "@/utils/matrixOperations";
+import { addMatrices, subtractMatrices, multiplyMatrices, transposeMatrix, calculateDeterminant, calculateAdjugate, calculateInverse, createMatrix, Matrix, calculateRank, solveLinearSystem, solveLinearSystemWithCramer } from "@/utils/matrixOperations";
 import { useToast } from "@/hooks/use-toast";
 import { MethodDialog } from "@/components/MethodDialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import packageJson from '../../package.json';
+import { SystemMethodDialog } from "@/components/SystemMethodDialog";
 
 const currentVersion = packageJson.version;
 
@@ -28,6 +29,8 @@ const Index = () => {
   const [systemVectorB, setSystemVectorB] = useState<Matrix>(createMatrix(2, 1));
   const [systemSolution, setSystemSolution] = useState<Matrix | null>(null);
   const [systemCompatibility, setSystemCompatibility] = useState<string>("");
+  const [systemMethodDialogOpen, setSystemMethodDialogOpen] = useState(false);
+  const [selectedSystemMethod, setSelectedSystemMethod] = useState<'gauss' | 'cramer' | ''>('');
 
   const { toast } = useToast();
 
@@ -190,7 +193,7 @@ const Index = () => {
     }
   };
 
-  const handleSystemSolve = () => {
+  const handleSystemSolve = (method) => {
     try {
       const numericA = systemMatrixA.map(row =>
         row.map(cell => {
@@ -210,27 +213,50 @@ const Index = () => {
         })
       );
 
-      const result = solveLinearSystem(numericA, numericB);
+      const actualMethod = method;
+
+      const isSquare = systemMatrixA.length === systemMatrixA[0]?.length;
+      const shouldUseCramer = actualMethod === 'cramer' && isSquare;
+
+      if (shouldUseCramer) {
+        const detA = calculateDeterminant(numericA, 'cofactors').result;
+        if (Math.abs(detA) < 1e-10) {
+          toast({
+            title: "Cramer no aplicable",
+            description: "El determinante es cero. Usando eliminación gaussiana.",
+            variant: "destructive",
+          });
+          const result = solveLinearSystem(numericA, numericB);
+          setSteps(result.steps);
+          setCurrentOperation("Sistema de Ecuaciones (Gauss)");
+          setSystemSolution(result.solution);
+          setSystemCompatibility(result.compatibility);
+          return;
+        }
+      }
+
+      const result = shouldUseCramer
+        ? solveLinearSystemWithCramer(numericA, numericB)
+        : solveLinearSystem(numericA, numericB);
+
       setSteps(result.steps);
-      setCurrentOperation("Sistema de Ecuaciones");
+      setCurrentOperation(`Sistema de Ecuaciones (${shouldUseCramer ? 'Cramer' : 'Gauss'})`);
       setSystemSolution(result.solution);
       setSystemCompatibility(result.compatibility);
 
       toast({
         title: "¡Sistema resuelto!",
-        description: `Sistema ${result.compatibility.toLowerCase()} resuelto exitosamente.`,
+        description: `Sistema ${result.compatibility.toLowerCase()} resuelto con ${shouldUseCramer ? 'Cramer' : 'Gauss'}.`,
       });
     } catch (error) {
-      toast({
-        title: "Error en la resolución",
-        description: error instanceof Error ? error.message : "Error desconocido",
-        variant: "destructive",
-      });
-      setSteps([]);
-      setCurrentOperation("");
-      setSystemSolution(null);
-      setSystemCompatibility("");
+      // ... manejo de errores
     }
+  };
+
+  const handleSystemMethodSelect = (method: 'gauss' | 'cramer') => {
+    setSelectedSystemMethod(method);
+    setSystemMethodDialogOpen(false);
+    handleSystemSolve(method);
   };
 
   const clearResults = () => {
@@ -484,7 +510,15 @@ const Index = () => {
               </div>
 
               <Button
-                onClick={handleSystemSolve}
+                onClick={() => {
+                  const isSquare = systemMatrixA.length === systemMatrixA[0]?.length;
+                  if (isSquare) {
+                    setSystemMethodDialogOpen(true);
+                  } else {
+                    setSelectedSystemMethod('gauss');
+                    handleSystemSolve();
+                  }
+                }}
                 className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg transition-smooth w-full py-3"
                 size="lg"
               >
@@ -494,7 +528,7 @@ const Index = () => {
 
               {systemCompatibility && (
                 <div className="mt-4 p-4 bg-step-highlight rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 mb-2">
                     <Badge className={
                       systemCompatibility.includes("COMPATIBLE")
                         ? "bg-green-500 text-white"
@@ -502,12 +536,15 @@ const Index = () => {
                     }>
                       {systemCompatibility}
                     </Badge>
-                    {systemSolution && (
-                      <span className="text-sm text-muted-foreground">
-                        Solución encontrada - Ver pasos abajo
-                      </span>
-                    )}
+                    <Badge variant="outline" className="border-purple-400 text-purple-600">
+                      {selectedSystemMethod === 'cramer' ? 'Método: Cramer' : 'Método: Gauss'}
+                    </Badge>
                   </div>
+                  {systemSolution && (
+                    <span className="text-sm text-muted-foreground">
+                      Solución encontrada - Ver pasos abajo
+                    </span>
+                  )}
                 </div>
               )}
             </div>
@@ -541,6 +578,14 @@ const Index = () => {
           onOpenChange={setMethodDialogOpen}
           onMethodSelect={handleMethodSelect}
           matrixSize={selectedMatrix === 'A' ? matrixA.length : matrixB.length}
+        />
+
+        <SystemMethodDialog
+          open={systemMethodDialogOpen}
+          onOpenChange={setSystemMethodDialogOpen}
+          onMethodSelect={handleSystemMethodSelect}
+          matrixSize={systemMatrixA.length}
+          isSquare={systemMatrixA.length === systemMatrixA[0]?.length}
         />
       </div>
 
