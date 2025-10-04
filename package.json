@@ -1,7 +1,7 @@
 {
   "name": "calculadora-matrices",
   "private": true,
-  "version": "1.0.73",
+  "version": "1.0.731",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -79,9 +79,6 @@
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.45.0",
-    "vite": "npm:rolldown-vite@latest"
-  },
-  "overrides": {
-    "vite": "npm:rolldown-vite@latest"
+    "vite": "^7.1.9"
   }
 }
