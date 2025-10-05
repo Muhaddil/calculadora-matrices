@@ -6,11 +6,21 @@ export default defineConfig(({ mode }) => ({
   base: "/calculadora-matrices/",
   plugins: [react()],
   optimizeDeps: {
-    include: ['katex', 'react-katex']
+    include: ['katex', 'react-katex', 'mathjs']
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          katex: ['katex', 'react-katex'],
+          mathjs: ['mathjs']
+        }
+      }
+    }
+  }
 }));
