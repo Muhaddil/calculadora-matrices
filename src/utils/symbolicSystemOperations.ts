@@ -1,6 +1,9 @@
 import { CalculationStep } from "@/components/StepDisplay";
 import { SymbolicExpression, symbolicMultiply, symbolicAdd, symbolicSubtract, symbolicDivide } from "./symbolicMath";
 import { SymbolicMatrix, parseSymbolicMatrix } from "./symbolicMatrixOperations";
+import { create, all, MathJsInstance } from 'mathjs';
+
+const math: MathJsInstance = create(all, {});
 
 export interface SymbolicSystemResult {
     solution: SymbolicMatrix | null;
@@ -259,21 +262,20 @@ function substituteParameterSimple(matrix: SymbolicMatrix, param: string, value:
         row.map(cell => {
             const exprString = cell.toString();
 
-            let substitutedString = exprString
-                .replace(new RegExp(`(?<![a-zA-Z])${param}(?![a-zA-Z])`, 'g'), value.toString())
-                .replace(new RegExp(`-${param}`, 'g'), `-${value}`)
-                .replace(new RegExp(`\\b${param}\\b`, 'g'), value.toString());
-
-            if (!/[a-zA-Z]/.test(substitutedString)) {
-                try {
-                    const evalResult = eval(substitutedString);
-                    return SymbolicExpression.fromNumber(evalResult);
-                } catch (e) {
-                    return SymbolicExpression.parse(substitutedString);
-                }
+            let expr;
+            try {
+                expr = math.parse(exprString);
+            } catch (e) {
+                return SymbolicExpression.parse(exprString);
             }
 
-            return SymbolicExpression.parse(substitutedString);
+            const substituted = expr.evaluate({ [param]: value });
+
+            if (typeof substituted === 'number') {
+                return SymbolicExpression.fromNumber(substituted);
+            }
+
+            return SymbolicExpression.parse(substituted.toString());
         })
     );
 }
