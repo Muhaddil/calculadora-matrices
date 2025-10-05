@@ -7,13 +7,14 @@ import { Plus, Minus } from "lucide-react";
 
 interface MatrixInputProps {
   label: string;
-  matrix: number[][];
+  matrix: (number | string)[][];
   onChange: (matrix: number[][]) => void;
   className?: string;
   allowVariables?: boolean;
   showControls?: boolean;
   forceSingleColumn?: boolean;
   systemMatrixA?: number[][];
+  allowParameters?: boolean;
 }
 
 export const MatrixInput = ({
@@ -25,6 +26,7 @@ export const MatrixInput = ({
   showControls = true,
   forceSingleColumn = false,
   systemMatrixA = [[]],
+  allowParameters = false,
 }: MatrixInputProps) => {
   const rows = matrix.length;
   const cols = matrix[0]?.length || 0;
@@ -37,10 +39,14 @@ export const MatrixInput = ({
     setMatrixStr(matrix.map((row) => row.map((cell) => cell.toString())));
   }, [rows, cols]);
 
-  const parseExpression = (value: string): number => {
+  const parseExpression = (value: string): number | string => {
     if (!value || value === "-" || value === "." || value === "-.") return 0;
 
     value = value.trim();
+
+    if (allowParameters || allowVariables) {
+      return value;
+    }
 
     if (/^-?\d*\.?\d+$/.test(value)) {
       return parseFloat(value);
@@ -81,11 +87,10 @@ export const MatrixInput = ({
 
     setMatrixStr(newMatrixStr);
 
-    if (allowVariables) {
+    if (allowVariables || allowParameters) {
       const mixedMatrix = newMatrixStr.map((r, i) =>
         r.map((v, j) => {
           if (v === "" || v === "-" || v === "." || v === "-.") return 0;
-
           return parseExpression(v);
         })
       );

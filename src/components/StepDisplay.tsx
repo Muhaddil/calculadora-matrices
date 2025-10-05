@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { MatrixDisplay } from "./MatrixDisplay";
 import 'katex/dist/katex.min.css';
 import { InlineMath, BlockMath } from 'react-katex';
+import { SymbolicSystemResult } from "./symbolicOperations";
 
 export interface CalculationStep {
   stepNumber: number;
@@ -14,6 +15,7 @@ export interface CalculationStep {
     highlight?: boolean;
     fraction?: string;
     showAsFraction?: boolean;
+    customLabels?: string[][];
   }[];
   formula?: string;
 }
@@ -21,6 +23,10 @@ export interface CalculationStep {
 interface StepDisplayProps {
   steps: CalculationStep[];
   className?: string;
+  specialCases?: Array<{
+    condition: string;
+    solution: SymbolicSystemResult;
+  }>;
 }
 
 const LatexWithLineBreaks = ({ text }: { text: string }) => {
@@ -41,7 +47,64 @@ const LatexWithLineBreaks = ({ text }: { text: string }) => {
   });
 };
 
-export const StepDisplay = ({ steps, className = "" }: StepDisplayProps) => {
+const SpecialCaseDisplay = ({ specialCase, index }: { 
+  specialCase: { condition: string; solution: SymbolicSystemResult }; 
+  index: number 
+}) => {
+  return (
+    <Card className="p-4 bg-yellow-50 border-yellow-200 mt-4">
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            Caso {index + 1}
+          </Badge>
+          <h4 className="font-semibold text-yellow-800">
+            Condición: <InlineMath math={specialCase.condition} />
+          </h4>
+        </div>
+        
+        <div className="text-sm text-yellow-700">
+          <strong>Compatibilidad:</strong> {specialCase.solution.compatibility}
+        </div>
+
+        {specialCase.solution.steps && specialCase.solution.steps.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-sm font-medium text-yellow-800">Proceso de resolución:</div>
+            {specialCase.solution.steps.map((step, stepIndex) => (
+              <Card key={stepIndex} className="p-3 bg-white border">
+                <div className="text-xs font-medium text-gray-600">Paso {step.stepNumber}</div>
+                <div className="text-sm font-medium">{step.title}</div>
+                <div className="text-xs text-gray-600 mt-1">
+                  <LatexWithLineBreaks text={step.description} />
+                </div>
+                {step.formula && (
+                  <div className="bg-gray-50 p-2 rounded mt-2">
+                    <BlockMath math={step.formula} />
+                  </div>
+                )}
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {specialCase.solution.solution && (
+          <div className="bg-green-50 p-3 rounded border border-green-200">
+            <div className="text-sm font-medium text-green-800">Solución:</div>
+            <BlockMath math={`
+              \\begin{cases}
+                ${specialCase.solution.solution.map((row, i) => 
+                  `x_{${i + 1}} = ${row[0].toLatex()}`
+                ).join(' \\\\ ')}
+              \\end{cases}
+            `} />
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+};
+
+export const StepDisplay = ({ steps, className = "", specialCases = [] }: StepDisplayProps) => {
   if (steps.length === 0) return null;
 
   return (
@@ -87,6 +150,7 @@ export const StepDisplay = ({ steps, className = "" }: StepDisplayProps) => {
                           highlight={matrixInfo.highlight}
                           fraction={matrixInfo.fraction}
                           showAsFraction={matrixInfo.showAsFraction}
+                          customLabels={matrixInfo.customLabels}
                         />
                       </div>
                     ))}
@@ -97,6 +161,33 @@ export const StepDisplay = ({ steps, className = "" }: StepDisplayProps) => {
           </div>
         </Card>
       ))}
+
+      {specialCases.length > 0 && (
+        <Card className="p-6 bg-blue-50 border-blue-200">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Badge variant="default" className="bg-blue-500 text-white px-3 py-1">
+                Casos Especiales
+              </Badge>
+              <h3 className="text-lg font-semibold text-blue-800">
+                Análisis de Valores Críticos
+              </h3>
+            </div>
+            
+            <p className="text-blue-700 leading-relaxed">
+              Se encontraron {specialCases.length} caso(s) especial(es) donde el sistema tiene comportamiento diferente:
+            </p>
+
+            {specialCases.map((specialCase, index) => (
+              <SpecialCaseDisplay 
+                key={index} 
+                specialCase={specialCase} 
+                index={index} 
+              />
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

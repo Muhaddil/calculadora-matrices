@@ -24,7 +24,9 @@ export const SystemMethodDialog = ({
   matrixSize,
   isSquare
 }: SystemMethodDialogProps) => {
-  const isCramerApplicable = isSquare;
+  // const isCramerApplicable = isSquare;
+  const isCramerApplicable = true;
+  const isGaussApplicable = true;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -40,12 +42,11 @@ export const SystemMethodDialog = ({
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-4 mt-4">
-          <Card 
-            className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-              isCramerApplicable 
-                ? "border-purple-200 hover:border-purple-400" 
+          <Card
+            className={`p-4 cursor-pointer transition-all hover:shadow-md ${isCramerApplicable
+                ? "border-purple-200 hover:border-purple-400"
                 : "border-gray-200 opacity-60"
-            }`}
+              }`}
             onClick={() => isCramerApplicable && onMethodSelect('cramer')}
           >
             <div className="flex items-start gap-3">
@@ -68,9 +69,12 @@ export const SystemMethodDialog = ({
             </div>
           </Card>
 
-          <Card 
-            className="p-4 cursor-pointer border-blue-200 hover:border-blue-400 hover:shadow-md transition-all"
-            onClick={() => onMethodSelect('gauss')}
+          <Card
+            className={`p-4 cursor-pointer border-blue-200 hover:border-blue-400 hover:shadow-md transition-all" ${isGaussApplicable
+                ? "border-purple-200 hover:border-purple-400"
+                : "border-gray-200 opacity-60"
+              }`}
+            onClick={() => isGaussApplicable && onMethodSelect('gauss')}
           >
             <div className="flex items-start gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -83,6 +87,12 @@ export const SystemMethodDialog = ({
                 <p className="text-sm text-muted-foreground mt-1">
                   Método general que funciona para cualquier sistema. Incluye solución paramétrica para sistemas indeterminados.
                 </p>
+                {!isGaussApplicable && (
+                  <p className="text-xs text-orange-600 mt-2">
+                    ⚠️ No disponible de momento
+                  </p>
+                )}
+
               </div>
             </div>
           </Card>
@@ -96,10 +106,10 @@ export const SystemMethodDialog = ({
             Cancelar
           </Button>
           <Button
-            onClick={() => onMethodSelect('gauss')}
+            onClick={() => onMethodSelect('cramer')}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Usar Gauss (Por Defecto)
+            Usar Cramer (Por Defecto)
           </Button>
         </div>
       </DialogContent>

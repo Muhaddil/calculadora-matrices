@@ -8,6 +8,7 @@ interface MatrixDisplayProps {
   highlight?: boolean;
   fraction?: string;
   showAsFraction?: boolean;
+  customLabels?: string[][];
 }
 
 export const MatrixDisplay = ({
@@ -17,14 +18,24 @@ export const MatrixDisplay = ({
   highlight = false,
   fraction,
   showAsFraction = false,
+  customLabels,
 }: MatrixDisplayProps) => {
   if (!matrix || matrix.length === 0) return null;
 
+  const rows = matrix.length;
   const cols = matrix[0]?.length || 0;
 
+  const maxRows = 8;
+  const maxCols = 6;
+  const shouldScroll = rows > maxRows || cols > maxCols;
+
   return (
-    <Card className={`w-full min-w-0 p-4 ${highlight ? "bg-step-highlight border-accent" : "bg-card"} shadow-card-soft border transition-smooth ${className}`} >
-      <div className="flex flex-col items-center w-full min-w-0">
+    <Card
+      className={`w-full p-4 ${
+        highlight ? "bg-step-highlight border-accent" : "bg-card"
+      } border transition-smooth ${className}`}
+    >
+      <div className="flex flex-col items-center w-full">
         {label && (
           <div className="mb-3 text-center w-full">
             <div className="text-sm font-semibold text-foreground">
@@ -33,40 +44,77 @@ export const MatrixDisplay = ({
           </div>
         )}
 
-        <div className="flex items-start justify-center gap-3 w-full min-w-0">
+        <div className="flex items-start justify-center gap-3 w-full">
           {fraction && (
-            <div className="text-xl font-math">
+            <div className="text-xl font-math flex-shrink-0">
               <BlockMath math={fraction} />
             </div>
           )}
 
-          <div className="relative w-full min-w-0">
-            <div className="absolute left-0 top-0 bottom-0 w-1 translate-x-[-6px] bg-primary rounded-full pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-1 translate-x-[6px] bg-primary rounded-full pointer-events-none" />
+          <div className="relative w-full" style={{ overflow: "visible" }}>
+            <div className="absolute top-0 bottom-0 w-[3px] -translate-x-[6px] bg-primary rounded-full pointer-events-none" style={{ left: 0 }} />
+            <div className="absolute top-0 bottom-0 w-[3px] translate-x-[6px] bg-primary rounded-full pointer-events-none" style={{ right: 0 }} />
 
-            <div className="w-full overflow-auto max-h-64">
+            <div
+              className={`w-full ${shouldScroll ? "overflow-auto max-h-64" : "overflow-visible"}`}
+            >
               <div
-                className="inline-grid gap-3 py-2 px-4"
+                className="inline-block"
                 style={{
-                  gridTemplateColumns: `repeat(${cols}, minmax(3rem, auto))`,
+                  minWidth: "max-content",
                 }}
               >
-                {matrix.map((row, i) =>
-                  row.map((cell, j) => (
-                    <div
-                      key={`${i}-${j}`}
-                      className="flex items-center justify-center text-sm font-mono text-foreground bg-matrix-cell border border-matrix-border rounded min-w-[3rem] h-10 px-2"
-                    >
-                      {fraction
-                        ? Math.round(cell)
-                        : showAsFraction
-                          ? formatAsFraction(cell)
-                          : Number.isInteger(cell)
-                            ? cell
-                            : cell.toFixed(2)}
-                    </div>
-                  ))
-                )}
+                <div
+                  className="inline-grid gap-2 py-2 px-3"
+                  style={{
+                    gridTemplateColumns: `repeat(${cols}, minmax(4rem, max-content))`,
+                  }}
+                >
+                  {matrix.map((row, i) =>
+                    row.map((cell, j) => {
+                      const hasCustom = !!(customLabels && customLabels[i] && customLabels[i][j]);
+                      const titleText = hasCustom ? String(customLabels![i][j]) : String(cell);
+
+                      const plainContent =
+                        fraction ? Math.round(cell) :
+                        showAsFraction ? formatAsFraction(cell) :
+                        Number.isInteger(cell) ? cell : cell.toFixed(2);
+
+                      return (
+                        <div
+                          key={`${i}-${j}`}
+                          className="flex items-center justify-center bg-matrix-cell border border-matrix-border rounded text-xs font-mono text-foreground px-3 py-2 text-center"
+                          style={{
+                            minWidth: "4rem",
+                            maxWidth: "min(40rem, 60vw)",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                          title={titleText}
+                        >
+                          <div
+                            className="katex-wrapper"
+                            style={{
+                              display: "inline-block",
+                              maxWidth: "100%",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              textAlign: "center",
+                            }}
+                          >
+                            {hasCustom ? (
+                              <BlockMath math={customLabels![i][j]} />
+                            ) : (
+                              <span>{plainContent as any}</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             </div>
           </div>

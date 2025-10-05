@@ -4,13 +4,16 @@ import { StepDisplay, CalculationStep } from "@/components/StepDisplay";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw, ChevronUp, BookOpen, Zap } from "lucide-react";
+import { Calculator, Plus, Minus, X, RotateCcw, Hash, Grid3x2 as Grid3X3, Divide, ArrowUp, ExternalLink, Download, RefreshCw, ChevronUp, ChevronDown, BookOpen, Zap, Sigma } from "lucide-react";
 import { addMatrices, subtractMatrices, multiplyMatrices, transposeMatrix, calculateDeterminant, calculateAdjugate, calculateInverse, createMatrix, Matrix, calculateRank, solveLinearSystem, solveLinearSystemWithCramer } from "@/utils/matrixOperations";
 import { useToast } from "@/hooks/use-toast";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { MethodDialog } from "@/components/MethodDialog";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import packageJson from '../../package.json';
 import { SystemMethodDialog } from "@/components/SystemMethodDialog";
+import { parseSymbolicMatrix, calculateSymbolicDeterminant } from "@/utils/symbolicMatrixOperations";
+import { solveSymbolicLinearSystem, SymbolicSystemResult } from "@/utils/symbolicSystemOperations";
 
 const currentVersion = packageJson.version;
 
@@ -31,6 +34,14 @@ const Index = () => {
   const [systemCompatibility, setSystemCompatibility] = useState<string>("");
   const [systemMethodDialogOpen, setSystemMethodDialogOpen] = useState(false);
   const [selectedSystemMethod, setSelectedSystemMethod] = useState<'gauss' | 'cramer' | ''>('');
+
+  const [symbolicMatrix, setSymbolicMatrix] = useState<Matrix>(createMatrix(2, 2));
+  const [symbolicMethodDialogOpen, setSymbolicMethodDialogOpen] = useState(false);
+
+  const [specialCases, setSpecialCases] = useState<Array<{
+    condition: string;
+    solution: SymbolicSystemResult;
+  }>>([]);
 
   const { toast } = useToast();
 
@@ -193,63 +204,89 @@ const Index = () => {
     }
   };
 
-  const handleSystemSolve = (method) => {
+  const handleSystemSolve = (method: 'gauss' | 'cramer') => {
     try {
-      const numericA = systemMatrixA.map(row =>
-        row.map(cell => {
-          if (typeof cell === 'number') return cell;
-          const str = cell.toString().toLowerCase();
-          if (str === 'x' || str === 'y' || str === 'z') return 1;
-          const parsed = parseFloat(cell);
-          return isNaN(parsed) ? 0 : parsed;
-        })
+      const hasVariables = systemMatrixA.some(row =>
+        row.some(cell => typeof cell === 'string' && /[a-zA-Z]/.test(cell.toString()))
+      ) || systemVectorB.some(row =>
+        row.some(cell => typeof cell === 'string' && /[a-zA-Z]/.test(cell.toString()))
       );
 
-      const numericB = systemVectorB.map(row =>
-        row.map(cell => {
-          if (typeof cell === 'number') return cell;
-          const parsed = parseFloat(cell);
-          return isNaN(parsed) ? 0 : parsed;
-        })
-      );
+      if (hasVariables) {
+        const result = solveSymbolicLinearSystem(systemMatrixA, systemVectorB, method);
 
-      const actualMethod = method;
+        setSteps(result.steps);
+        setSpecialCases(result.specialCases || []);
+        setCurrentOperation(`Sistema de Ecuaciones (Simbólico)`);
+        setSystemSolution(null);
+        setSystemCompatibility(result.compatibility);
 
-      const isSquare = systemMatrixA.length === systemMatrixA[0]?.length;
-      const shouldUseCramer = actualMethod === 'cramer' && isSquare;
+        toast({
+          title: "¡Sistema resuelto simbólicamente!",
+          description: `Sistema ${result.compatibility.toLowerCase()} con parámetros.`,
+        });
+      } else {
+        const numericA = systemMatrixA.map(row =>
+          row.map(cell => {
+            if (typeof cell === 'number') return cell;
+            const parsed = parseFloat(cell);
+            return isNaN(parsed) ? 0 : parsed;
+          })
+        );
 
-      if (shouldUseCramer) {
-        const detA = calculateDeterminant(numericA, 'cofactors').result;
-        if (Math.abs(detA) < 1e-10) {
-          toast({
-            title: "Cramer no aplicable",
-            description: "El determinante es cero. Usando eliminación gaussiana.",
-            variant: "destructive",
-          });
-          const result = solveLinearSystem(numericA, numericB);
-          setSteps(result.steps);
-          setCurrentOperation("Sistema de Ecuaciones (Gauss)");
-          setSystemSolution(result.solution);
-          setSystemCompatibility(result.compatibility);
-          return;
+        const numericB = systemVectorB.map(row =>
+          row.map(cell => {
+            if (typeof cell === 'number') return cell;
+            const parsed = parseFloat(cell);
+            return isNaN(parsed) ? 0 : parsed;
+          })
+        );
+
+        const isSquare = systemMatrixA.length === systemMatrixA[0]?.length;
+        const shouldUseCramer = method === 'cramer' && isSquare;
+
+        if (shouldUseCramer) {
+          const detA = calculateDeterminant(numericA, 'cofactors').result[0][0];
+          if (Math.abs(detA) < 1e-10) {
+            toast({
+              title: "Cramer no aplicable",
+              description: "El determinante es cero. Usando eliminación gaussiana.",
+              variant: "destructive",
+            });
+            const result = solveLinearSystem(numericA, numericB);
+            setSteps(result.steps);
+            setCurrentOperation("Sistema de Ecuaciones (Gauss)");
+            setSystemSolution(result.solution);
+            setSystemCompatibility(result.compatibility);
+            return;
+          }
         }
+
+        const result = shouldUseCramer
+          ? solveLinearSystemWithCramer(numericA, numericB)
+          : solveLinearSystem(numericA, numericB);
+
+        setSteps(result.steps);
+        setCurrentOperation(`Sistema de Ecuaciones (${shouldUseCramer ? 'Cramer' : 'Gauss'})`);
+        setSystemSolution(result.solution);
+        setSystemCompatibility(result.compatibility);
+
+        toast({
+          title: "¡Sistema resuelto!",
+          description: `Sistema ${result.compatibility.toLowerCase()} resuelto con ${shouldUseCramer ? 'Cramer' : 'Gauss'}.`,
+        });
       }
-
-      const result = shouldUseCramer
-        ? solveLinearSystemWithCramer(numericA, numericB)
-        : solveLinearSystem(numericA, numericB);
-
-      setSteps(result.steps);
-      setCurrentOperation(`Sistema de Ecuaciones (${shouldUseCramer ? 'Cramer' : 'Gauss'})`);
-      setSystemSolution(result.solution);
-      setSystemCompatibility(result.compatibility);
-
-      toast({
-        title: "¡Sistema resuelto!",
-        description: `Sistema ${result.compatibility.toLowerCase()} resuelto con ${shouldUseCramer ? 'Cramer' : 'Gauss'}.`,
-      });
     } catch (error) {
-      // ... manejo de errores
+      toast({
+        title: "Error en el cálculo",
+        description: error instanceof Error ? error.message : "Error desconocido",
+        variant: "destructive",
+      });
+      setSteps([]);
+      setCurrentOperation("");
+      setSystemSolution(null);
+      setSystemCompatibility("");
+      setSpecialCases([]);
     }
   };
 
@@ -259,11 +296,58 @@ const Index = () => {
     handleSystemSolve(method);
   };
 
+  const handleSymbolicDeterminant = (method: 'zeros' | 'cofactors' | 'sarrus') => {
+    try {
+      const symbolicMatrixParsed = parseSymbolicMatrix(symbolicMatrix);
+      const result = calculateSymbolicDeterminant(symbolicMatrixParsed, method);
+
+      setSteps(result.steps);
+      setCurrentOperation("Determinante Simbólico");
+
+      let methodDescription = '';
+      switch (method) {
+        case 'zeros':
+          methodDescription = 'Ceros (Gauss)';
+          break;
+        case 'cofactors':
+          methodDescription = 'Cofactores';
+          break;
+        case 'sarrus':
+          methodDescription = 'Regla de Sarrus';
+          break;
+      }
+
+      toast({
+        title: "¡Determinante simbólico calculado!",
+        description: `Método usado: ${methodDescription}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error en el cálculo simbólico",
+        description: error instanceof Error ? error.message : "Error desconocido",
+        variant: "destructive",
+      });
+      setSteps([]);
+      setCurrentOperation("");
+    }
+  };
+
+  const handleSymbolicMethodSelect = (method: 'zeros' | 'cofactors' | 'sarrus') => {
+    if (symbolicMatrix.length >= 3) {
+      handleSymbolicDeterminant(method);
+      setSymbolicMethodDialogOpen(false);
+    } else {
+      handleSymbolicDeterminant('cofactors');
+      setSymbolicMethodDialogOpen(false);
+    }
+  };
+
   const clearResults = () => {
     setSteps([]);
     setCurrentOperation("");
     setSystemSolution(null);
     setSystemCompatibility("");
+    setSpecialCases([]);
   };
 
   useEffect(() => {
@@ -477,78 +561,127 @@ const Index = () => {
             </div>
           </Card>
 
-          <Card className="p-6 bg-linear-to-r from-card to-purple-500/10 shadow-card-soft border-2 border-purple-200">
-            <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-purple-500" />
-              Sistemas de Ecuaciones Lineales
-            </h2>
+          <Collapsible>
+            <Card className="p-6 bg-linear-to-r from-card to-orange-500/10 shadow-card-soft border-2 border-orange-200">
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center justify-between w-full text-left mb-4 group">
+                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <Sigma className="h-5 w-5 text-orange-500" />
+                    Determinante con Parámetros
+                  </h2>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                </button>
+              </CollapsibleTrigger>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-3 text-foreground">Matriz de Coeficientes (A)</h3>
-                  <MatrixInput
-                    label=""
-                    matrix={systemMatrixA}
-                    onChange={setSystemMatrixA}
-                    allowVariables={true}
-                  />
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium mb-3 text-foreground">Vector Términos Independientes (B)</h3>
-                  <MatrixInput
-                    label=""
-                    matrix={systemVectorB}
-                    onChange={setSystemVectorB}
-                    allowVariables={true}
-                    forceSingleColumn={true}
-                    showControls={false}
-                    systemMatrixA={systemMatrixA}
-                  />
-                </div>
-              </div>
-
-              <Button
-                onClick={() => {
-                  const isSquare = systemMatrixA.length === systemMatrixA[0]?.length;
-                  if (isSquare) {
-                    setSystemMethodDialogOpen(true);
-                  } else {
-                    setSelectedSystemMethod('gauss');
-                    handleSystemSolve();
-                  }
-                }}
-                className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg transition-smooth w-full py-3"
-                size="lg"
-              >
-                <Zap className="mr-2 h-5 w-5" />
-                Resolver Sistema A·X = B
-              </Button>
-
-              {systemCompatibility && (
-                <div className="mt-4 p-4 bg-step-highlight rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-3 mb-2">
-                    <Badge className={
-                      systemCompatibility.includes("COMPATIBLE")
-                        ? "bg-green-500 text-white"
-                        : "bg-yellow-500 text-white"
-                    }>
-                      {systemCompatibility}
-                    </Badge>
-                    <Badge variant="outline" className="border-purple-400 text-purple-600">
-                      {selectedSystemMethod === 'cramer' ? 'Método: Cramer' : 'Método: Gauss'}
-                    </Badge>
+              <CollapsibleContent>
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground bg-orange-50 dark:bg-orange-900/20 p-3 rounded border border-orange-200 dark:border-orange-800 mb-4">
+                    💡 Ingresa una matriz con variables (a, b, c, x, y, z, etc.) y obtén el determinante como expresión algebraica
                   </div>
-                  {systemSolution && (
-                    <span className="text-sm text-muted-foreground">
-                      Solución encontrada - Ver pasos abajo
-                    </span>
+
+                  <MatrixInput
+                    label="Matriz con parámetros"
+                    matrix={symbolicMatrix}
+                    onChange={setSymbolicMatrix}
+                    allowVariables={true}
+                    allowParameters={true}
+                  />
+
+                  <Button
+                    onClick={() => {
+                      if (symbolicMatrix.length >= 3) {
+                        setSymbolicMethodDialogOpen(true);
+                      } else {
+                        handleSymbolicDeterminant('cofactors');
+                      }
+                    }}
+                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg transition-smooth w-full py-3"
+                    size="lg"
+                  >
+                    <Sigma className="mr-2 h-5 w-5" />
+                    Calcular Determinante Simbólico
+                  </Button>
+                </div>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          <Collapsible>
+            <Card className="p-6 bg-linear-to-r from-card to-purple-500/10 shadow-card-soft border-2 border-purple-200">
+              <CollapsibleTrigger asChild>
+                <button className="flex items-center justify-between w-full text-left mb-4 group">
+                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-purple-500" />
+                    Sistemas de Ecuaciones Lineales
+                  </h2>
+                  <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+                </button>
+              </CollapsibleTrigger>
+
+              <CollapsibleContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 text-foreground">Matriz de Coeficientes (A)</h3>
+                      <MatrixInput
+                        label=""
+                        matrix={systemMatrixA}
+                        onChange={setSystemMatrixA}
+                        allowVariables={true}
+                      />
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-3 text-foreground">Vector Términos Independientes (B)</h3>
+                      <MatrixInput
+                        label=""
+                        matrix={systemVectorB}
+                        onChange={setSystemVectorB}
+                        allowVariables={true}
+                        allowParameters={true}
+                        forceSingleColumn={true}
+                        showControls={false}
+                        systemMatrixA={systemMatrixA}
+                      />
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => {
+                      setSystemMethodDialogOpen(true);
+                    }}
+                    className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg transition-smooth w-full py-3"
+                    size="lg"
+                  >
+                    <Zap className="mr-2 h-5 w-5" />
+                    Resolver Sistema A·X = B
+                  </Button>
+
+                  {systemCompatibility && (
+                    <div className="mt-4 p-4 bg-step-highlight rounded-lg border border-purple-200">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Badge className={
+                          systemCompatibility.includes("COMPATIBLE")
+                            ? "bg-green-500 text-white"
+                            : "bg-yellow-500 text-white"
+                        }>
+                          {systemCompatibility}
+                        </Badge>
+                        <Badge variant="outline" className="border-purple-400 text-purple-600">
+                          {selectedSystemMethod === 'cramer' ? 'Método: Cramer' : 'Método: Gauss'}
+                        </Badge>
+                      </div>
+                      {systemSolution && (
+                        <span className="text-sm text-muted-foreground">
+                          Solución encontrada - Ver pasos abajo
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-          </Card>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
 
           {steps.length > 0 && (
             <div className="mt-4 pt-4 border-t border-border">
@@ -571,13 +704,20 @@ const Index = () => {
           </div>
         )}
 
-        <StepDisplay steps={steps} />
+        <StepDisplay steps={steps} specialCases={specialCases} />
 
         <MethodDialog
           open={methodDialogOpen}
           onOpenChange={setMethodDialogOpen}
           onMethodSelect={handleMethodSelect}
           matrixSize={selectedMatrix === 'A' ? matrixA.length : matrixB.length}
+        />
+
+        <MethodDialog
+          open={symbolicMethodDialogOpen}
+          onOpenChange={setSymbolicMethodDialogOpen}
+          onMethodSelect={handleSymbolicMethodSelect}
+          matrixSize={symbolicMatrix.length}
         />
 
         <SystemMethodDialog
