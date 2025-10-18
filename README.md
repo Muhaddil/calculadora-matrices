@@ -34,7 +34,7 @@ Una aplicación web interactiva para realizar operaciones con matrices, desarrol
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/tu-usuario/calculadora-matrices.git
+git clone https://github.com/Muhaddil/calculadora-matrices.git
 cd calculadora-matrices
 
 # Instalar dependencias
