@@ -1,5 +1,10 @@
 import { CalculationStep } from "@/components/StepDisplay";
 import { SymbolicExpression, symbolicMultiply, symbolicAdd, symbolicSubtract } from "./symbolicMath";
+import i18n from "@/i18n/config";
+
+const t = (key: string, params?: Record<string, any>) => {
+  return i18n.t(key, params);
+};
 
 export type SymbolicMatrix = SymbolicExpression[][];
 
@@ -32,7 +37,7 @@ export function calculateSymbolicDeterminant(
   method: "zeros" | "cofactors" | "sarrus" = "cofactors"
 ): SymbolicOperationResult {
   if (matrix.length !== matrix[0].length) {
-    throw new Error("El determinante solo se puede calcular para matrices cuadradas");
+    throw new Error(t("matrixOperations.errorMatrixSquareOnly"));
   }
 
   const steps: CalculationStep[] = [];
@@ -40,13 +45,13 @@ export function calculateSymbolicDeterminant(
 
   steps.push({
     stepNumber: 1,
-    title: "Cálculo simbólico del determinante",
-    description: `Matriz cuadrada ${n}×${n} con parámetros\nMétodo seleccionado: ${getMethodDescription(method, n)}\n\nEl resultado será una expresión algebraica en términos de los parámetros.`,
+    title: t("matrixOperations.symbolicDeterminantTitle"),
+    description: t("matrixOperations.symbolicDeterminantDescription", { n, method: getMethodDescription(method, n) }),
     matrices: [{
-      label: "\\text{Matriz con parámetros}",
+      label: "\\text{" + t("matrixOperations.matrixWithParametersLabel") + "}",
       matrix: symbolicMatrixToDisplay(matrix),
       customLabels: symbolicMatrixToLatex(matrix)
-    }],
+    }]
   });
 
   let det: SymbolicExpression;
@@ -55,9 +60,9 @@ export function calculateSymbolicDeterminant(
     det = matrix[0][0];
     steps.push({
       stepNumber: 2,
-      title: "Caso especial: Matriz 1×1",
-      description: "Para una matriz 1×1, el determinante es el único elemento.",
-      formula: `\\text{det}(A) = ${det.toLatex()}`,
+      title: t("matrixOperations.specialCase1x1Title"),
+      description: t("matrixOperations.specialCase1x1Description"),
+      formula: t("matrixOperations.formulaDeterminant", { det: det.toLatex() })
     });
   } else if (n === 2) {
     const a = matrix[0][0], b = matrix[0][1];
@@ -69,9 +74,9 @@ export function calculateSymbolicDeterminant(
 
     steps.push({
       stepNumber: 2,
-      title: "Fórmula para matriz 2×2",
-      description: `Aplicamos la fórmula: det = ad - bc`,
-      formula: `\\text{det}(A) = (${a.toLatex()})(${d.toLatex()}) - (${b.toLatex()})(${c.toLatex()}) = ${det.toLatex()}`,
+      title: t("matrixOperations.formula2x2Title"),
+      description: t("matrixOperations.formula2x2Description"),
+      formula: `\\det(A) = (${a.toLatex()})(${d.toLatex()}) - (${b.toLatex()})(${c.toLatex()}) = ${det.toLatex()}`
     });
   } else if (n === 3) {
     if (method === "sarrus") {
@@ -80,7 +85,7 @@ export function calculateSymbolicDeterminant(
       det = calculateSymbolicDeterminant3x3Cofactors(matrix, steps);
     }
   } else {
-    det = calculateSymbolicDeterminantCofactors(matrix, steps);
+    det = calculateSymbolicDeterminantWithSteps(matrix, steps, "A");
   }
 
   if (det.isPolynomial()) {
@@ -89,8 +94,8 @@ export function calculateSymbolicDeterminant(
 
     steps.push({
       stepNumber: polyStepsStart,
-      title: "Desarrollo del polinomio",
-      description: `Expandimos el determinante para obtener un polinomio en ${variable}`,
+      title: t("matrixOperations.polynomialExpansionTitle"),
+      description: t("matrixOperations.polynomialExpansionDescription", { variable }),
       formula: `\\text{det}(A) = ${det.expand().toLatex()}`,
     });
 
@@ -98,30 +103,30 @@ export function calculateSymbolicDeterminant(
     if (roots.length > 0) {
       steps.push({
         stepNumber: polyStepsStart + 1,
-        title: "Cálculo de raíces",
-        description: `Resolvemos la ecuación det(A) = 0 para ${variable}`,
+        title: t("matrixOperations.rootsCalculationTitle"),
+        description: t("matrixOperations.rootsCalculationDescription", { variable }),
         formula: `${variable} = ${roots.map(r => r.toLatex()).join(", ")}`,
       });
     }
   }
 
-//   steps.push({
-//     stepNumber: steps.length + 1,
-//     title: "RESULTADO FINAL",
-//     description: `Determinante simbólico de la matriz ${n}×${n}`,
-//     formula: `\\text{det}(A) = ${det.toLatex()}`,
-//   });
+  //   steps.push({
+  //     stepNumber: steps.length + 1,
+  //     title: "RESULTADO FINAL",
+  //     description: `Determinante simbólico de la matriz ${n}×${n}`,
+  //     formula: `\\text{det}(A) = ${det.toLatex()}`,
+  //   });
 
   return { result: det, steps };
 }
 
 function getMethodDescription(method: string, n: number): string {
   if (n === 3) {
-    return method === "sarrus" ? "Regla de Sarrus" : "Desarrollo por cofactores";
+    return method === "sarrus" ? t("matrixOperations.methodSarrus") : t("matrixOperations.methodCofactors");
   } else if (n >= 4) {
-    return "Desarrollo por cofactores";
+    return t("matrixOperations.methodCofactors");
   }
-  return "Método directo";
+  return t("matrixOperations.methodDirect");
 }
 
 function calculateSymbolicDeterminant3x3Sarrus(
@@ -132,9 +137,9 @@ function calculateSymbolicDeterminant3x3Sarrus(
 
   steps.push({
     stepNumber: 2,
-    title: "Método: Regla de Sarrus",
-    description: `Para matrices 3×3, aplicamos la regla de Sarrus:\ndet = aei + bfg + cdh - ceg - bdi - afh`,
-    formula: "\\text{det}(A) = aei + bfg + cdh - ceg - bdi - afh",
+    title: t("matrixOperations.methodSarrusTitle"),
+    description: t("matrixOperations.methodSarrusDescription"),
+    formula: "\\text{det}(A) = aei + bfg + cdh - ceg - bdi - afh"
   });
 
   const aei = symbolicMultiply(symbolicMultiply(a, e), i);
@@ -150,8 +155,8 @@ function calculateSymbolicDeterminant3x3Sarrus(
 
   steps.push({
     stepNumber: 3,
-    title: "Desarrollo de productos",
-    description: `Calculamos cada producto diagonal:`,
+    title: t("matrixOperations.productDevelopmentTitle"),
+    description: t("matrixOperations.productDevelopmentDescription"),
     formula: `
 aei = (${a.toLatex()})(${e.toLatex()})(${i.toLatex()}) = ${aei.toLatex()} \\\\
 bfg = (${b.toLatex()})(${f.toLatex()})(${g.toLatex()}) = ${bfg.toLatex()} \\\\
@@ -159,14 +164,14 @@ cdh = (${c.toLatex()})(${d.toLatex()})(${h.toLatex()}) = ${cdh.toLatex()} \\\\
 ceg = (${c.toLatex()})(${e.toLatex()})(${g.toLatex()}) = ${ceg.toLatex()} \\\\
 bdi = (${b.toLatex()})(${d.toLatex()})(${i.toLatex()}) = ${bdi.toLatex()} \\\\
 afh = (${a.toLatex()})(${f.toLatex()})(${h.toLatex()}) = ${afh.toLatex()}
-    `,
+  `
   });
 
   steps.push({
     stepNumber: 4,
-    title: "Resultado con Sarrus",
-    description: "Sumamos los términos positivos y restamos los negativos:",
-    formula: `\\text{det}(A) = ${det.toLatex()}`,
+    title: t("matrixOperations.resultSarrusTitle"),
+    description: t("matrixOperations.resultSarrusDescription"),
+    formula: `\\text{det}(A) = ${det.toLatex()}`
   });
 
   return det;
@@ -180,9 +185,9 @@ function calculateSymbolicDeterminant3x3Cofactors(
 
   steps.push({
     stepNumber: 2,
-    title: "Método: Desarrollo por cofactores",
-    description: `Desarrollamos por la primera fila:\ndet(A) = a·C₁₁ + b·C₁₂ + c·C₁₃`,
-    formula: "\\text{det}(A) = a \\cdot C_{11} + b \\cdot C_{12} + c \\cdot C_{13}",
+    title: t("matrixOperations.cofactor3x3Title"),
+    description: t("matrixOperations.cofactor3x3Description"),
+    formula: "\\text{det}(A) = a \\cdot C_{11} + b \\cdot C_{12} + c \\cdot C_{13}"
   });
 
   const c11 = symbolicSubtract(symbolicMultiply(e, i), symbolicMultiply(f, h));
@@ -191,13 +196,13 @@ function calculateSymbolicDeterminant3x3Cofactors(
 
   steps.push({
     stepNumber: 3,
-    title: "Cálculo de cofactores",
-    description: `Calculamos los cofactores de la primera fila:`,
+    title: t("matrixOperations.cofactorsCalculationTitle"),
+    description: t("matrixOperations.cofactorsCalculationDescription"),
     formula: `
 C_{11} = ei - fh = ${c11.toLatex()} \\\\
 C_{12} = -(di - fg) = ${c12.toLatex()} \\\\
 C_{13} = dh - eg = ${c13.toLatex()}
-    `,
+    `
   });
 
   const term1 = symbolicMultiply(a, c11);
@@ -207,56 +212,178 @@ C_{13} = dh - eg = ${c13.toLatex()}
 
   steps.push({
     stepNumber: 4,
-    title: "Resultado final",
-    description: "Multiplicamos cada elemento por su cofactor y sumamos:",
+    title: t("matrixOperations.finalResultTitle"),
+    description: t("matrixOperations.finalResultDescription"),
     formula: `
 \\text{det}(A) = (${a.toLatex()})(${c11.toLatex()}) + (${b.toLatex()})(${c12.toLatex()}) + (${c.toLatex()})(${c13.toLatex()}) \\\\
 = ${det.toLatex()}
-    `,
+    `
   });
 
   return det;
 }
 
-function calculateSymbolicDeterminantCofactors(
-  matrix: SymbolicMatrix,
-  steps: CalculationStep[]
+
+function calculateSymbolicDeterminantWithSteps(
+  matrix: SymbolicMatrix, 
+  steps: CalculationStep[], 
+  label: string = "A"
 ): SymbolicExpression {
   const n = matrix.length;
+  
+  if (n === 1) {
+    const result = matrix[0][0];
+    steps.push({
+      stepNumber: steps.length + 1,
+      title: t("matrixOperations.baseCase1x1Title"),
+      description: t("matrixOperations.baseCase1x1Description", { label }),
+      formula: `\\det(${label}) = ${result.toLatex()}`
+    });
+    return result;
+  }
+  
+  if (n === 2) {
+    const [[a, b], [c, d]] = matrix;
+    const result = symbolicSubtract(symbolicMultiply(a, d), symbolicMultiply(b, c));
+    steps.push({
+      stepNumber: steps.length + 1,
+      title: t("matrixOperations.baseCase2x2Title"),
+      description: t("matrixOperations.baseCase2x2Description", { label }),
+      formula: `\\det(${label}) = (${a.toLatex()})(${d.toLatex()}) - (${b.toLatex()})(${c.toLatex()}) = ${result.toLatex()}`
+    });
+    return result;
+  }
+  
+  if (n === 3) {
+    return calculateSymbolicDeterminant3x3Cofactors(matrix, steps);
+  }
+  
+  // Para n ≥ 4, usar expansión por cofactores
+  return calculateSymbolicDeterminantCofactors(matrix, steps, label);
+}
 
+function calculateSymbolicDeterminantCofactors(
+  matrix: SymbolicMatrix,
+  steps: CalculationStep[],
+  label: string = "A"
+): SymbolicExpression {
+  const n = matrix.length;
+  
   steps.push({
-    stepNumber: 2,
-    title: "Desarrollo por cofactores",
-    description: `Desarrollamos por la primera fila de la matriz ${n}×${n}`,
-    formula: `\\text{det}(A) = \\sum_{j=1}^{${n}} a_{1j} \\cdot C_{1j}`,
+    stepNumber: steps.length + 1,
+    title: t("matrixOperations.cofactorExpansionTitle"),
+    description: t("matrixOperations.cofactorExpansionDescription", { n }),
+    matrices: [{
+      label: label,
+      matrix: symbolicMatrixToDisplay(matrix),
+      customLabels: symbolicMatrixToLatex(matrix)
+    }]
+  });
+
+  const expansionRow = findBestExpansionRow(matrix);
+  
+  steps.push({
+    stepNumber: steps.length + 1,
+    title: t("matrixOperations.expansionStrategyTitle"),
+    description: t("matrixOperations.expansionStrategyDescription", { row: expansionRow + 1 }),
+    formula: `\\text{det}(${label}) = \\sum_{j=1}^{${n}} a_{${expansionRow + 1}j} \\cdot C_{${expansionRow + 1}j}`
   });
 
   let det = SymbolicExpression.fromNumber(0);
+  let termCount = 0;
 
   for (let j = 0; j < n; j++) {
-    const element = matrix[0][j];
-    if (element.isZero()) continue;
+    const element = matrix[expansionRow][j];
+    
+    if (element.isZero()) {
+      steps.push({
+        stepNumber: steps.length + 1,
+        title: t("matrixOperations.zeroElementTitle", { row: expansionRow + 1, col: j + 1 }),
+        description: t("matrixOperations.zeroElementDescription"),
+        formula: `a_{${expansionRow + 1}${j + 1}} = 0 \\quad \\text{→ ${t("matrixOperations.termOmitted")}}`
+      });
+      continue;
+    }
 
-    const sign = j % 2 === 0 ? 1 : -1;
-    const minor = getSymbolicMinor(matrix, 0, j);
-    const minorDet = calculateSymbolicDeterminantSimple(minor);
+    termCount++;
+    const sign = (expansionRow + j) % 2 === 0 ? 1 : -1;
+    const signSymbol = sign === 1 ? '+' : '-';
+    const signText = sign === 1 ? t("matrixOperations.positive") : t("matrixOperations.negative");
+    
+    steps.push({
+      stepNumber: steps.length + 1,
+      title: t("matrixOperations.elementAnalysisTitle", { term: termCount }),
+      description: t("matrixOperations.elementAnalysisDescription", { 
+        row: expansionRow + 1, 
+        col: j + 1,
+        sign: signText
+      }),
+      formula: `a_{${expansionRow + 1}${j + 1}} = ${element.toLatex()}, \\quad \\text{${t("matrixOperations.sign")}: } ${signSymbol}`
+    });
 
+    const minor = getSymbolicMinor(matrix, expansionRow, j);
+    const minorLabel = `${label.substring(0, label.indexOf('_') || label.length)}_{${expansionRow + 1}${j + 1}}`;
+    
+    steps.push({
+      stepNumber: steps.length + 1,
+      title: t("matrixOperations.minorCalculationTitle", { row: expansionRow + 1, col: j + 1 }),
+      description: t("matrixOperations.minorCalculationDescription"),
+      matrices: [{
+        label: minorLabel,
+        matrix: symbolicMatrixToDisplay(minor),
+        customLabels: symbolicMatrixToLatex(minor)
+      }]
+    });
+
+    const minorDet = calculateSymbolicDeterminantWithSteps(minor, steps, minorLabel);
     const cofactor = sign === 1 ? minorDet : minorDet.negate();
     const contribution = symbolicMultiply(element, cofactor);
 
+    steps.push({
+      stepNumber: steps.length + 1,
+      title: t("matrixOperations.cofactorContributionTitle"),
+      description: t("matrixOperations.cofactorContributionDescription"),
+      formula: `
+C_{${expansionRow + 1}${j + 1}} = ${sign === 1 ? '' : '-'}\\det(${minorLabel}) = ${cofactor.toLatex()} \\\\
+\\text{${t("matrixOperations.contribution")}} = (${element.toLatex()}) \\cdot (${cofactor.toLatex()}) = ${contribution.toLatex()}
+      `
+    });
+
     det = symbolicAdd(det, contribution);
 
-    if (j < 3) {
+    if (termCount > 1) {
       steps.push({
-        stepNumber: 3 + j,
-        title: `Término ${j + 1}`,
-        description: `Contribución del elemento a₁${j + 1}:`,
-        formula: `a_{1${j + 1}} \\cdot C_{1${j + 1}} = (${element.toLatex()}) \\cdot (${cofactor.toLatex()}) = ${contribution.toLatex()}`,
+        stepNumber: steps.length + 1,
+        title: t("matrixOperations.partialSumTitle"),
+        description: t("matrixOperations.partialSumDescription"),
+        formula: `\\text{${t("matrixOperations.partialSum")}} = ${det.toLatex()}`
       });
     }
   }
 
+  steps.push({
+    stepNumber: steps.length + 1,
+    title: t("matrixOperations.finalDeterminantTitle"),
+    description: t("matrixOperations.finalDeterminantDescription", { n }),
+    formula: `\\det(${label}) = ${det.toLatex()}`
+  });
+
   return det;
+}
+
+function findBestExpansionRow(matrix: SymbolicMatrix): number {
+  let bestRow = 0;
+  let maxZeros = -1;
+  
+  for (let i = 0; i < matrix.length; i++) {
+    const zeroCount = matrix[i].filter(element => element.isZero()).length;
+    if (zeroCount > maxZeros) {
+      maxZeros = zeroCount;
+      bestRow = i;
+    }
+  }
+  
+  return bestRow;
 }
 
 function getSymbolicMinor(matrix: SymbolicMatrix, row: number, col: number): SymbolicMatrix {
@@ -274,50 +401,4 @@ function getSymbolicMinor(matrix: SymbolicMatrix, row: number, col: number): Sym
   }
 
   return result;
-}
-
-function calculateSymbolicDeterminantSimple(matrix: SymbolicMatrix): SymbolicExpression {
-  const n = matrix.length;
-
-  if (n === 1) {
-    return matrix[0][0];
-  }
-
-  if (n === 2) {
-    const [[a, b], [c, d]] = matrix;
-    const ad = symbolicMultiply(a, d);
-    const bc = symbolicMultiply(b, c);
-    return symbolicSubtract(ad, bc);
-  }
-
-  if (n === 3) {
-    const [[a, b, c], [d, e, f], [g, h, i]] = matrix;
-    const aei = symbolicMultiply(symbolicMultiply(a, e), i);
-    const bfg = symbolicMultiply(symbolicMultiply(b, f), g);
-    const cdh = symbolicMultiply(symbolicMultiply(c, d), h);
-    const ceg = symbolicMultiply(symbolicMultiply(c, e), g);
-    const bdi = symbolicMultiply(symbolicMultiply(b, d), i);
-    const afh = symbolicMultiply(symbolicMultiply(a, f), h);
-
-    const positiveSum = symbolicAdd(symbolicAdd(aei, bfg), cdh);
-    const negativeSum = symbolicAdd(symbolicAdd(ceg, bdi), afh);
-    return symbolicSubtract(positiveSum, negativeSum);
-  }
-
-  let det = SymbolicExpression.fromNumber(0);
-  for (let j = 0; j < n; j++) {
-    const element = matrix[0][j];
-    if (element.isZero()) continue;
-
-    const sign = j % 2 === 0 ? 1 : -1;
-    const minor = getSymbolicMinor(matrix, 0, j);
-    const minorDet = calculateSymbolicDeterminantSimple(minor);
-
-    const cofactor = sign === 1 ? minorDet : minorDet.negate();
-    const contribution = symbolicMultiply(element, cofactor);
-
-    det = symbolicAdd(det, contribution);
-  }
-
-  return det;
 }
