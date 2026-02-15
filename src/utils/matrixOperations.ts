@@ -1056,7 +1056,11 @@ export const calculateInverse = (matrix: Matrix): MatrixOperationResult => {
 
   const det = determinantRecursive(matrix);
   if (Math.abs(det) < 1e-10) {
-    throw new Error(t("matrixOperations.nonInvertibleError", { det: det.toFixed(6) }));
+    const message = t("matrixOperations.nonInvertibleError", {
+      det: det.toFixed(6),
+    }) as string
+
+    throw new Error(message)
   }
 
   steps.push({
@@ -1095,21 +1099,25 @@ export const calculateInverse = (matrix: Matrix): MatrixOperationResult => {
     ],
   });
 
-  const fractionText = `\\frac{1}{${det.toFixed(2)}}`;
+  const fractionText = `1/${det.toFixed(2)}`
+  const fractionKatex = `\\frac{1}{${det.toFixed(2)}}`;
 
   steps.push({
     stepNumber: 5,
     title: t("matrixOperations.inverseMatrixFractionTitle"),
-    description: t("matrixOperations.inverseMatrixFractionDescription", { fractionText }),
+    description: t(
+      "matrixOperations.inverseMatrixFractionDescription",
+      { fractionText: fractionText }
+    ),
     matrices: [
       {
-        label: `A^{-1} = ${fractionText} \\times \\text{adj}(A)`,
+        label: `A^{-1} = ${fractionKatex} \\times \\text{adj}(A)`,
         matrix: adjMatrix,
-        fraction: fractionText,
+        fraction: fractionKatex,
         highlight: true,
       },
     ],
-  });
+  })
 
   const result: Matrix = adjMatrix.map((row) =>
     row.map((cell) => {
