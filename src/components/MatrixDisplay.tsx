@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { BlockMath } from "react-katex";
+import { InlineMath, BlockMath } from "@/components/KatexRenderer";
 
 interface MatrixDisplayProps {
   matrix: number[][];
@@ -31,9 +31,8 @@ export const MatrixDisplay = ({
 
   return (
     <Card
-      className={`w-full p-4 ${
-        highlight ? "bg-step-highlight border-accent" : "bg-card"
-      } border transition-smooth ${className}`}
+      className={`w-full p-4 ${highlight ? "bg-step-highlight border-accent" : "bg-card"
+        } border transition-smooth ${className}`}
     >
       <div className="flex flex-col items-center w-full">
         {label && (
@@ -77,8 +76,8 @@ export const MatrixDisplay = ({
 
                       const plainContent =
                         fraction ? Math.round(cell) :
-                        showAsFraction ? formatAsFraction(cell) :
-                        Number.isInteger(cell) ? cell : cell.toFixed(2);
+                          showAsFraction ? formatAsFraction(cell) :
+                            Number.isInteger(cell) ? cell : cell.toFixed(2);
 
                       return (
                         <div

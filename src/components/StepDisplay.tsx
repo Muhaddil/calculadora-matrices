@@ -1,8 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { MatrixDisplay } from "./MatrixDisplay"
-import "katex/dist/katex.min.css"
-import { InlineMath, BlockMath } from "react-katex"
+import { InlineMath, BlockMath } from "@/components/KatexRenderer";
 import type { SymbolicSystemResult } from "./symbolicOperations"
 import { useTranslation } from "react-i18next"
 
