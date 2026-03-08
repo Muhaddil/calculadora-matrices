@@ -6,9 +6,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Header } from "@/components/Header";
+import { Loader2 } from "lucide-react";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+const LoadingFallback = () => (
+  <div className="min-h-screen bg-gradient-bg flex items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -25,7 +32,7 @@ const App = () => {
             <Route
               path="/"
               element={
-                <Suspense fallback={<div className="min-h-screen bg-gradient-bg" />}>
+                <Suspense fallback={<LoadingFallback />}>
                   <Index />
                 </Suspense>
               }
@@ -33,7 +40,7 @@ const App = () => {
             <Route
               path="*"
               element={
-                <Suspense fallback={null}>
+                <Suspense fallback={<LoadingFallback />}>
                   <NotFound />
                 </Suspense>
               }

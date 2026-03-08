@@ -6,10 +6,10 @@ interface Props {
     displayMode?: boolean;
 }
 
-export const BlockMath = ({ math }: { math: string }) => {
+const KatexRenderer = ({ math, displayMode = false }: Props) => {
     try {
         const html = katex.renderToString(math, {
-            displayMode: true,
+            displayMode,
             throwOnError: false,
         });
         return <span dangerouslySetInnerHTML={{ __html: html }} />;
@@ -18,14 +18,10 @@ export const BlockMath = ({ math }: { math: string }) => {
     }
 };
 
+export const BlockMath = ({ math }: { math: string }) => {
+    return <KatexRenderer math={math} displayMode={true} />;
+};
+
 export const InlineMath = ({ math }: { math: string }) => {
-    try {
-        const html = katex.renderToString(math, {
-            displayMode: false,
-            throwOnError: false,
-        });
-        return <span dangerouslySetInnerHTML={{ __html: html }} />;
-    } catch {
-        return <span>{math}</span>;
-    }
+    return <KatexRenderer math={math} displayMode={false} />;
 };
