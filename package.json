@@ -1,7 +1,7 @@
 {
   "name": "calculadora-matrices",
   "private": true,
-  "version": "1.0.883-beta",
+  "version": "1.0.884-beta",
   "type": "module",
   "scripts": {
     "dev": "vite",
