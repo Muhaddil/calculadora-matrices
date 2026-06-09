@@ -409,21 +409,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-bg relative">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="container mx-auto px-4 py-2 max-w-6xl">
-          <div className="flex items-center justify-center p-4 mb-4 text-sm text-yellow-800 border-t-4 border-yellow-300 bg-yellow-50 rounded-lg" role="alert">
-            <svg className="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
-            </svg>
-            <span className="sr-only">Info</span>
-            <div>
-              <span className="font-medium">{t("navigation.local_availability_title") || "Disponibilidad limitada:"}</span>
-              <span className="ml-1">
-                {t("navigation.local_availability_message") || "Actualmente no está todo traducido a los diferentes idiomas."}
-              </span>
-            </div>
-          </div>
-        </div>
-
         {updateAvailable && (
           <Alert className="mb-6 border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
             <RefreshCw className="h-5 w-5 text-blue-500 dark:text-blue-400" />

@@ -2,6 +2,11 @@ import { CalculationStep } from "@/components/StepDisplay";
 import { SymbolicExpression, symbolicMultiply, symbolicAdd, symbolicSubtract, symbolicDivide } from "./symbolicMath";
 import { SymbolicMatrix, parseSymbolicMatrix } from "./symbolicMatrixOperations";
 import { create, all, MathJsInstance } from 'mathjs';
+import i18n from "@/i18n/config";
+
+const t = (key: string, params?: Record<string, any>) => {
+  return i18n.t(key, params);
+};
 
 const math: MathJsInstance = create(all, {});
 
@@ -42,8 +47,8 @@ export function solveSymbolicLinearSystem(
 
         steps.push({
             stepNumber: 1,
-            title: "Sistema de ecuaciones original",
-            description: `Sistema de ${n} ecuaciones con ${m} incógnitas - Método: ${method.toUpperCase()}`,
+            title: t("symbolicSystemOperations.originalSystemTitle"),
+            description: t("symbolicSystemOperations.originalSystemDescription", { n, m, method: method.toUpperCase() }),
             matrices: [
                 {
                     label: "A",
@@ -68,8 +73,8 @@ export function solveSymbolicLinearSystem(
 
         steps.push({
             stepNumber: 2,
-            title: "Ecuaciones del sistema",
-            description: "Sistema en forma de ecuaciones:",
+            title: t("symbolicSystemOperations.equationsTitle"),
+            description: t("symbolicSystemOperations.equationsDescription"),
             formula: `\\begin{cases} ${equations} \\end{cases}`
         });
 
@@ -78,8 +83,8 @@ export function solveSymbolicLinearSystem(
         if (hasParameters) {
             steps.push({
                 stepNumber: 3,
-                title: "Sistema con parámetros detectado",
-                description: "Analizando casos especiales para diferentes valores de los parámetros",
+                title: t("symbolicSystemOperations.parametricDetectedTitle"),
+                description: t("symbolicSystemOperations.parametricDetectedDescription"),
             });
 
             const result = analyzeParametricSystem(symbolicA, symbolicB, method, steps);
@@ -94,11 +99,11 @@ export function solveSymbolicLinearSystem(
     } catch (error) {
         return {
             solution: null,
-            compatibility: "ERROR: " + (error instanceof Error ? error.message : "Error desconocido"),
+            compatibility: t("symbolicSystemOperations.errorInCalc", { message: error instanceof Error ? error.message : t("symbolicSystemOperations.errorUnknown") }),
             steps: [...steps, {
                 stepNumber: steps.length + 1,
-                title: "Error en el cálculo",
-                description: "No se pudo resolver el sistema simbólicamente.",
+                title: t("symbolicSystemOperations.errorCalcTitle"),
+                description: t("symbolicSystemOperations.errorCalcDescription"),
             }]
         };
     }
@@ -126,8 +131,8 @@ function analyzeParametricSystem(
 
         steps.push({
             stepNumber: steps.length + 1,
-            title: "Cálculo del determinante",
-            description: "Encontramos el determinante del sistema:",
+            title: t("symbolicSystemOperations.determinantCalcTitle"),
+            description: t("symbolicSystemOperations.determinantCalcDescription"),
             formula: `\\det(A) = ${det.toLatex()}`
         });
 
@@ -136,8 +141,8 @@ function analyzeParametricSystem(
         if (criticalValues.length > 0) {
             steps.push({
                 stepNumber: steps.length + 1,
-                title: "Valores críticos encontrados",
-                description: `El determinante se anula para:`,
+                title: t("symbolicSystemOperations.criticalValuesTitle"),
+                description: t("symbolicSystemOperations.criticalValuesDescription"),
                 formula: criticalValues.map(val => val.condition).join(', ')
             });
 
@@ -150,14 +155,14 @@ function analyzeParametricSystem(
                 generalResult = solveByGauss(A, B, [...steps]);
             }
 
-            generalResult.compatibility = `COMPATIBLE DETERMINADO (caso general - det(A) ≠ 0)`;
+            generalResult.compatibility = t("symbolicSystemOperations.compatibleDeterminedGeneral");
 
             for (const critical of criticalValues) {
                 const caseSteps: CalculationStep[] = [{
                     stepNumber: 1,
-                    title: `CASO ESPECIAL: ${critical.condition}`,
-                    description: `Resolviendo el sistema cuando ${critical.condition}`,
-                    formula: `\\text{Sustituyendo } ${critical.condition} \\text{ en el sistema}`
+                    title: t("symbolicSystemOperations.caseSpecialTitle", { condition: critical.condition }),
+                    description: t("symbolicSystemOperations.caseSpecialDescription", { condition: critical.condition }),
+                    formula: t("symbolicSystemOperations.substitutingFormula", { condition: critical.condition })
                 }];
 
                 try {
@@ -174,13 +179,13 @@ function analyzeParametricSystem(
 
                     caseSteps.push({
                         stepNumber: 2,
-                        title: "Sistema sustituido",
-                        description: `Sistema después de sustituir ${critical.condition}:`,
+                        title: t("symbolicSystemOperations.substitutedSystemTitle"),
+                        description: t("symbolicSystemOperations.substitutedSystemDescription", { condition: critical.condition }),
                         formula: `\\begin{cases} ${substitutedEquations} \\end{cases}`
                     });
 
                     const specialResult = solveByGauss(substitutedA, substitutedB, caseSteps);
-                    specialResult.compatibility = `CASO ESPECIAL: ${critical.condition} - ${specialResult.compatibility}`;
+                    specialResult.compatibility = `${t("symbolicSystemOperations.caseSpecialTitle", { condition: critical.condition })} - ${specialResult.compatibility}`;
 
                     specialCases.push({
                         condition: critical.condition,
@@ -189,15 +194,15 @@ function analyzeParametricSystem(
                 } catch (error) {
                     caseSteps.push({
                         stepNumber: 2,
-                        title: "Error en sustitución",
-                        description: `No se pudo sustituir ${critical.condition} en el sistema`,
+                        title: t("symbolicSystemOperations.substitutionErrorTitle"),
+                        description: t("symbolicSystemOperations.substitutionErrorDescription", { condition: critical.condition }),
                     });
 
                     specialCases.push({
                         condition: critical.condition,
                         solution: {
                             solution: null,
-                            compatibility: "ERROR EN SUSTITUCIÓN",
+                            compatibility: t("symbolicSystemOperations.errorSubstitution"),
                             steps: caseSteps
                         }
                     });
@@ -207,9 +212,9 @@ function analyzeParametricSystem(
             if (specialCases.length > 0) {
                 steps.push({
                     stepNumber: steps.length + 1,
-                    title: "Casos especiales identificados",
-                    description: `Se encontraron ${specialCases.length} caso(s) especial(es) que requieren análisis por separado:`,
-                    formula: specialCases.map((sc, i) => `\\text{Caso ${i + 1}: } ${sc.condition}`).join('\\\\')
+                    title: t("symbolicSystemOperations.casesIdentifiedTitle"),
+                    description: t("symbolicSystemOperations.casesIdentifiedDescription", { count: specialCases.length }),
+                    formula: specialCases.map((sc, i) => `\\text{${t("symbolicSystemOperations.caseNumber", { i: i + 1 })}: } ${sc.condition}`).join('\\\\')
                 });
             }
 
@@ -291,24 +296,24 @@ function solveByCramer(
     if (n !== m) {
         steps.push({
             stepNumber: steps.length + 1,
-            title: "Método de Cramer no aplicable",
-            description: "El sistema no es cuadrado, usando eliminación gaussiana",
+            title: t("symbolicSystemOperations.cramerNotApplicableTitle"),
+            description: t("symbolicSystemOperations.cramerNotApplicableDescription"),
         });
         return solveByGauss(A, B, steps);
     }
 
     steps.push({
         stepNumber: steps.length + 1,
-        title: "APLICANDO MÉTODO DE CRAMER",
-        description: "Resolviendo por determinantes usando la regla de Cramer",
+        title: t("symbolicSystemOperations.applyingCramerTitle"),
+        description: t("symbolicSystemOperations.applyingCramerDescription"),
     });
 
     const detA = calculateDeterminant(A);
 
     steps.push({
         stepNumber: steps.length + 1,
-        title: "Determinante principal del sistema",
-        description: "Calculamos el determinante de la matriz de coeficientes:",
+        title: t("symbolicSystemOperations.mainDeterminantTitle"),
+        description: t("symbolicSystemOperations.mainDeterminantDescription"),
         formula: `\\det(A) = ${detA.toLatex()}`
     });
 
@@ -319,11 +324,11 @@ function solveByCramer(
 
         for (const critical of criticalValues) {
             const caseSteps: CalculationStep[] = [{
-                stepNumber: 1,
-                title: `CASO ESPECIAL: ${critical.condition}`,
-                description: `Resolviendo el sistema cuando ${critical.condition}`,
-                formula: `\\text{Sustituyendo } ${critical.condition} \\text{ en el sistema}`
-            }];
+                    stepNumber: 1,
+                    title: t("symbolicSystemOperations.caseSpecialTitle", { condition: critical.condition }),
+                    description: t("symbolicSystemOperations.caseSpecialDescription", { condition: critical.condition }),
+                    formula: t("symbolicSystemOperations.substitutingFormula", { condition: critical.condition })
+                }];
 
             try {
                 const substitutedA = substituteParameterSimple(A, critical.parameter, critical.value);
@@ -339,13 +344,13 @@ function solveByCramer(
 
                 caseSteps.push({
                     stepNumber: 2,
-                    title: "Sistema sustituido",
-                    description: `Sistema después de sustituir ${critical.condition}:`,
+                    title: t("symbolicSystemOperations.substitutedSystemTitle"),
+                    description: t("symbolicSystemOperations.substitutedSystemDescription", { condition: critical.condition }),
                     formula: `\\begin{cases} ${substitutedEquations} \\end{cases}`
                 });
 
                 const specialResult = solveByGauss(substitutedA, substitutedB, caseSteps);
-                specialResult.compatibility = `CASO ESPECIAL: ${critical.condition} - ${specialResult.compatibility}`;
+                specialResult.compatibility = `${t("symbolicSystemOperations.caseSpecialTitle", { condition: critical.condition })} - ${specialResult.compatibility}`;
 
                 specialCases.push({
                     condition: critical.condition,
@@ -354,15 +359,15 @@ function solveByCramer(
             } catch (error) {
                 caseSteps.push({
                     stepNumber: 2,
-                    title: "Error en sustitución",
-                    description: `No se pudo sustituir ${critical.condition} en el sistema`,
+                    title: t("symbolicSystemOperations.substitutionErrorTitle"),
+                    description: t("symbolicSystemOperations.substitutionErrorDescription", { condition: critical.condition }),
                 });
 
                 specialCases.push({
                     condition: critical.condition,
                     solution: {
                         solution: null,
-                        compatibility: "ERROR EN SUSTITUCIÓN",
+                        compatibility: t("symbolicSystemOperations.errorSubstitution"),
                         steps: caseSteps
                     }
                 });
@@ -372,13 +377,13 @@ function solveByCramer(
         if (detA.isZero()) {
             steps.push({
                 stepNumber: steps.length + 1,
-                title: "SISTEMA SINGULAR - DETERMINANTE CERO",
-                description: "El determinante es cero, mostrando análisis de casos especiales",
+                title: t("symbolicSystemOperations.singularSystemTitle"),
+                description: t("symbolicSystemOperations.singularSystemDescription"),
             });
 
             return {
                 solution: null,
-                compatibility: "SISTEMA SINGULAR - ver casos especiales",
+                compatibility: t("symbolicSystemOperations.singularSeeCases"),
                 steps,
                 specialCases
             };
@@ -393,8 +398,8 @@ function solveByCramer(
     if (detA.isZero()) {
         steps.push({
             stepNumber: steps.length + 1,
-            title: "SISTEMA SINGULAR - NO APLICABLE CRAMER",
-            description: "El determinante es cero, el sistema puede ser incompatible o indeterminado",
+            title: t("symbolicSystemOperations.singularNotApplicableTitle"),
+            description: t("symbolicSystemOperations.singularNotApplicableDescription"),
             formula: `\\det(A) = 0 \\Rightarrow \\text{No existe solución única}`
         });
         return solveByGauss(A, B, steps);
@@ -414,9 +419,9 @@ function continueCramerSolution(
 
     steps.push({
         stepNumber: steps.length + 1,
-        title: "REGLA DE CRAMER - EXPLICACIÓN",
-        description: "Para cada variable, sustituimos la columna correspondiente por el vector B y calculamos el determinante:",
-        formula: `x_i = \\frac{\\det(A_i)}{\\det(A)}`
+        title: t("symbolicSystemOperations.cramerRuleTitle"),
+        description: t("symbolicSystemOperations.cramerRuleDescription"),
+        formula: t("symbolicSystemOperations.cramerFormula")
     });
 
     const solution: SymbolicMatrix = [];
@@ -432,8 +437,8 @@ function continueCramerSolution(
 
         steps.push({
             stepNumber: steps.length + 1,
-            title: `CÁLCULO DE x${i + 1} - Paso ${i + 1}`,
-            description: `Creamos la matriz A${i + 1} sustituyendo la COLUMNA ${i + 1} de A por el vector B:`,
+            title: t("symbolicSystemOperations.calculatingXTitle", { i: i + 1, step: i + 1 }),
+            description: t("symbolicSystemOperations.calculatingXDescription", { i: i + 1, col: i + 1 }),
             matrices: [{
                 label: `A_{${i + 1}}`,
                 matrix: Ai.map(row => row.map(() => 0)),
@@ -443,8 +448,8 @@ function continueCramerSolution(
 
         steps.push({
             stepNumber: steps.length + 1,
-            title: `Determinante de A${i + 1}`,
-            description: `Calculamos el determinante de la matriz A${i + 1}:`,
+            title: t("symbolicSystemOperations.detAiTitle", { i: i + 1 }),
+            description: t("symbolicSystemOperations.detAiDescription", { i: i + 1 }),
             formula: `\\det(A_{${i + 1}}) = ${detAi.toLatex()}`
         });
 
@@ -453,8 +458,8 @@ function continueCramerSolution(
 
     steps.push({
         stepNumber: steps.length + 1,
-        title: "SOLUCIÓN GENERAL DEL SISTEMA",
-        description: "Aplicando la regla de Cramer, obtenemos la solución general:",
+        title: t("symbolicSystemOperations.generalSolutionTitle"),
+        description: t("symbolicSystemOperations.generalSolutionDescription"),
         formula: `
       \\begin{cases}
         ${solution.map((row, i) => `x_{${i + 1}} = \\frac{${row[0].toLatex()}}{${detA.toLatex()}}`).join(' \\\\ ')}
@@ -464,8 +469,8 @@ function continueCramerSolution(
 
     steps.push({
         stepNumber: steps.length + 1,
-        title: "SIMPLIFICACIÓN DE LAS SOLUCIONES",
-        description: "Simplificando las expresiones:",
+        title: t("symbolicSystemOperations.simplificationTitle"),
+        description: t("symbolicSystemOperations.simplificationDescription"),
     });
 
     const simplifiedSolution: SymbolicMatrix = [];
@@ -478,8 +483,8 @@ function continueCramerSolution(
         if (!simplified.equals(solution[i][0])) {
             steps.push({
                 stepNumber: steps.length + 1,
-                title: `Simplificación de x${i + 1}`,
-                description: `La solución para x${i + 1} se simplifica:`,
+                title: t("symbolicSystemOperations.simplifyXiTitle", { i: i + 1 }),
+                description: t("symbolicSystemOperations.simplifyXiDescription", { i: i + 1 }),
                 formula: `x_{${i + 1}} = \\frac{${solution[i][0].toLatex()}}{${detA.toLatex()}} = ${simplified.toLatex()}`
             });
             simplificationShown = true;
@@ -489,15 +494,17 @@ function continueCramerSolution(
     if (!simplificationShown) {
         steps.push({
             stepNumber: steps.length + 1,
-            title: "Simplificación de las soluciones",
-            description: "Las soluciones no se pueden simplificar más algebraicamente.",
-            formula: `\\text{Las fracciones } \\frac{\\det(A_i)}{\\det(A)} \\text{ están en su forma más simple}`
+            title: t("symbolicSystemOperations.noSimplifyTitle"),
+            description: t("symbolicSystemOperations.noSimplifyDescription"),
+            formula: t("symbolicSystemOperations.noSimplifyFormula")
         });
     }
 
     return {
         solution: simplifiedSolution,
-        compatibility: `COMPATIBLE DETERMINADO${criticalValues.length > 0 ? ` (para ${criticalValues.map(cv => `${cv.parameter} ≠ ${cv.value}`).join(' y ')})` : ''}`,
+        compatibility: criticalValues.length > 0
+            ? t("symbolicSystemOperations.compatibleDeterminedCritical", { conditions: criticalValues.map(cv => `${cv.parameter} ≠ ${cv.value}`).join(' y ') })
+            : t("symbolicSystemOperations.compatibleDeterminedGeneral"),
         steps
     };
 }
@@ -577,10 +584,10 @@ function solveByGauss(
 
     steps.push({
         stepNumber: steps.length + 1,
-        title: "APLICANDO ELIMINACIÓN GAUSSIANA",
-        description: "Matriz aumentada [A|B] - Iniciando eliminación",
+        title: t("symbolicSystemOperations.gaussApplyingTitle"),
+        description: t("symbolicSystemOperations.gaussApplyingDescription"),
         matrices: [{
-            label: "[A|B] inicial",
+            label: "[A|B]",
             matrix: augmented.map(row => row.map(() => 0)),
             customLabels: augmented.map(row => row.map(cell => cell.toLatex()))
         }]
@@ -602,8 +609,8 @@ function solveByGauss(
         if (pivotRow === -1) {
             steps.push({
                 stepNumber: stepCount++,
-                title: `Columna ${col + 1} sin pivote`,
-                description: `Variable x${col + 1} será libre (si el sistema es indeterminado)`,
+                title: t("symbolicSystemOperations.columnNoPivotTitle", { col: col + 1 }),
+                description: t("symbolicSystemOperations.columnNoPivotDescription", { col: col + 1 }),
             });
             continue;
         }
@@ -631,10 +638,10 @@ function solveByGauss(
 
     steps.push({
         stepNumber: stepCount++,
-        title: "MATRIZ ESCALONADA FINAL",
-        description: "Fin de la eliminación hacia adelante",
+        title: t("symbolicSystemOperations.echelonMatrixTitle"),
+        description: t("symbolicSystemOperations.echelonMatrixDescription"),
         matrices: [{
-            label: "\\text{Forma escalonada}",
+            label: "\\text{" + t("symbolicSystemOperations.echelonMatrixTitle") + "}",
             matrix: augmented.map(row => row.map(() => 0)),
             customLabels: augmented.map(row => row.map(cell => cell.toLatex()))
         }]
@@ -654,12 +661,12 @@ function solveByGauss(
             if (allZero) {
                 steps.push({
                     stepNumber: stepCount++,
-                    title: "SISTEMA INCOMPATIBLE",
-                    description: `Ecuación inconsistente encontrada: 0 = ${augmented[i][m].toLatex()} ≠ 0`,
+                    title: t("symbolicSystemOperations.incompatibleTitle"),
+                    description: t("symbolicSystemOperations.incompatibleDescription", { value: augmented[i][m].toLatex() }),
                 });
                 return {
                     solution: null,
-                    compatibility: "INCOMPATIBLE",
+                    compatibility: t("matrixOperations.incompatible"),
                     steps
                 };
             }
@@ -671,8 +678,8 @@ function solveByGauss(
 
         steps.push({
             stepNumber: stepCount++,
-            title: "SUSTITUCIÓN HACIA ATRÁS",
-            description: "Resolviendo el sistema triangular",
+            title: t("symbolicSystemOperations.backSubstitutionTitle"),
+            description: t("symbolicSystemOperations.backSubstitutionDescription"),
         });
 
 
@@ -690,8 +697,8 @@ function solveByGauss(
 
             steps.push({
                 stepNumber: stepCount++,
-                title: `Variable x${col + 1}`,
-                description: `Expresión obtenida:`,
+                title: t("symbolicSystemOperations.variableXiTitle", { i: col + 1 }),
+                description: t("symbolicSystemOperations.variableXiDescription"),
                 formula: `x_{${col + 1}} = ${solution[col][0].toLatex()}`
             });
         }
@@ -702,14 +709,14 @@ function solveByGauss(
 
         steps.push({
             stepNumber: stepCount++,
-            title: "SOLUCIÓN FINAL POR GAUSS",
-            description: "Sistema Compatible Determinado",
+            title: t("symbolicSystemOperations.gaussSolutionTitle"),
+            description: t("symbolicSystemOperations.gaussSolutionDescription"),
             formula: `\\begin{cases} ${solutionText} \\end{cases}`
         });
 
         return {
             solution,
-            compatibility: "COMPATIBLE DETERMINADO",
+            compatibility: t("matrixOperations.compatibleDetermined"),
             steps
         };
     } else {
@@ -757,15 +764,15 @@ function solveIndeterminateSystem(
 
     steps.push({
         stepNumber: stepCount++,
-        title: "SISTEMA COMPATIBLE INDETERMINADO",
-        description: `Infinitas soluciones - ${freeVars.length} grado(s) de libertad`,
-        formula: `\\text{Variables libres: } ${freeVars.map(v => `x_{${v + 1}}`).join(', ')}`
+        title: t("symbolicSystemOperations.indeterminateTitle"),
+        description: t("symbolicSystemOperations.indeterminateDescription", { count: freeVars.length }),
+        formula: t("symbolicSystemOperations.indeterminateFreeVars", { vars: freeVars.map(v => `x_{${v + 1}}`).join(', ') })
     });
 
     steps.push({
         stepNumber: stepCount++,
-        title: "BUSCANDO SOLUCIÓN PARTICULAR",
-        description: "Asignando valores a las variables libres para encontrar una solución particular",
+        title: t("symbolicSystemOperations.searchParticularTitle"),
+        description: t("symbolicSystemOperations.searchParticularDescription"),
     });
 
     const particularSolution: SymbolicMatrix = Array(m).fill(0).map(() => [SymbolicExpression.fromNumber(0)]);
@@ -789,15 +796,15 @@ function solveIndeterminateSystem(
 
     steps.push({
         stepNumber: stepCount++,
-        title: "SOLUCIÓN PARTICULAR ENCONTRADA",
-        description: "Asignando 0 a las variables libres:",
-        formula: `\\text{Particular: } ${particularSolution.map((row, i) => `x_{${i + 1}} = ${row[0].toLatex()}`).join('\\\\ ')}`
+        title: t("symbolicSystemOperations.particularFoundTitle"),
+        description: t("symbolicSystemOperations.particularFoundDescription"),
+        formula: t("symbolicSystemOperations.particularFoundFormula", { solution: particularSolution.map((row, i) => `x_{${i + 1}} = ${row[0].toLatex()}`).join('\\\\ ') })
     });
 
     steps.push({
         stepNumber: stepCount++,
-        title: "BASE DEL SISTEMA HOMOGÉNEO",
-        description: `Encontrando ${freeVars.length} vector(es) para el espacio solución`,
+        title: t("symbolicSystemOperations.homogeneousBaseTitle"),
+        description: t("symbolicSystemOperations.homogeneousBaseDescription", { count: freeVars.length }),
     });
 
     const homogeneousBasis: SymbolicMatrix[] = [];
@@ -826,9 +833,9 @@ function solveIndeterminateSystem(
 
         steps.push({
             stepNumber: stepCount++,
-            title: `Vector de la base para x${freeVar + 1}`,
-            description: `Solución del sistema homogéneo cuando x${freeVar + 1} = 1:`,
-            formula: `\\mathbf{v}_{${freeVar + 1}} = \\begin{pmatrix} ${basisVector.map(row => row[0].toLatex()).join('\\\\ ')} \\end{pmatrix}`
+            title: t("symbolicSystemOperations.basisVectorTitle", { i: freeVar + 1 }),
+            description: t("symbolicSystemOperations.basisVectorDescription", { i: freeVar + 1 }),
+            formula: t("symbolicSystemOperations.basisVectorFormula", { i: freeVar + 1, vector: basisVector.map(row => row[0].toLatex()).join('\\\\ ') })
         });
     }
 
@@ -836,14 +843,14 @@ function solveIndeterminateSystem(
 
     steps.push({
         stepNumber: stepCount++,
-        title: "SOLUCIÓN GENERAL PARAMÉTRICA",
-        description: "La solución completa del sistema:",
+        title: t("symbolicSystemOperations.parametricFormTitle"),
+        description: t("symbolicSystemOperations.parametricFormDescription"),
         formula: parametricForm
     });
 
     return {
         solution: null,
-        compatibility: "COMPATIBLE INDETERMINADO",
+        compatibility: t("matrixOperations.compatibleIndeterminate"),
         steps,
         parametricSolution: {
             particularSolution,
