@@ -1,21 +1,24 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Home, Calculator } from "lucide-react"
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Home, Calculator } from "lucide-react";
 
 interface NotFoundProps {
-  pathname?: string
+  pathname?: string;
 }
 
 const NotFound = ({ pathname }: NotFoundProps) => {
   useEffect(() => {
-    console.info("📊 Calculadora de Matrices - Página no encontrada:", pathname || window.location.pathname)
-  }, [pathname])
+    console.info(
+      "📊 Calculadora de Matrices - Página no encontrada:",
+      pathname || window.location.pathname,
+    );
+  }, [pathname]);
 
   const handleGoHome = () => {
-    window.location.href = "/"
-  }
+    window.location.href = "/";
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -28,7 +31,9 @@ const NotFound = ({ pathname }: NotFoundProps) => {
 
         <div className="space-y-2">
           <p className="text-xl text-muted-foreground">Página no encontrada</p>
-          <p className="text-sm text-muted-foreground">La página que buscas no existe</p>
+          <p className="text-sm text-muted-foreground">
+            La página que buscas no existe
+          </p>
         </div>
 
         <Button onClick={handleGoHome} className="mt-6" size="lg">
@@ -37,7 +42,7 @@ const NotFound = ({ pathname }: NotFoundProps) => {
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default NotFound
+export default NotFound;

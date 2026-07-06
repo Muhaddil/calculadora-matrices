@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { MatrixInput } from "@/components/MatrixInput"
-import { StepDisplay, type CalculationStep } from "@/components/StepDisplay"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react";
+import { MatrixInput } from "@/components/MatrixInput";
+import { StepDisplay, type CalculationStep } from "@/components/StepDisplay";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Calculator,
   Plus,
@@ -24,7 +24,7 @@ import {
   BookOpen,
   Zap,
   Sigma,
-} from "lucide-react"
+} from "lucide-react";
 import {
   addMatrices,
   subtractMatrices,
@@ -38,159 +38,185 @@ import {
   calculateRank,
   solveLinearSystem,
   solveLinearSystemWithCramer,
-} from "@/utils/matrixOperations"
-import { useToast } from "@/hooks/use-toast"
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
-import { MethodDialog } from "@/components/MethodDialog"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
-import packageJson from "../../package.json"
-import { SystemMethodDialog } from "@/components/SystemMethodDialog"
-import { parseSymbolicMatrix, calculateSymbolicDeterminant } from "@/utils/symbolicMatrixOperations"
-import { solveSymbolicLinearSystem, type SymbolicSystemResult } from "@/utils/symbolicSystemOperations"
-import { useTranslation } from "react-i18next"
+} from "@/utils/matrixOperations";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import { MethodDialog } from "@/components/MethodDialog";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import packageJson from "../../package.json";
+import { SystemMethodDialog } from "@/components/SystemMethodDialog";
+import {
+  parseSymbolicMatrix,
+  calculateSymbolicDeterminant,
+} from "@/utils/symbolicMatrixOperations";
+import {
+  solveSymbolicLinearSystem,
+  type SymbolicSystemResult,
+} from "@/utils/symbolicSystemOperations";
+import { useTranslation } from "react-i18next";
 
-const currentVersion = packageJson.version
+const currentVersion = packageJson.version;
 
 const Index = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
-  const [matrixA, setMatrixA] = useState<Matrix>(createMatrix(2, 2))
-  const [matrixB, setMatrixB] = useState<Matrix>(createMatrix(2, 2))
-  const [steps, setSteps] = useState<CalculationStep[]>([])
-  const [currentOperation, setCurrentOperation] = useState<string>("")
-  const [methodDialogOpen, setMethodDialogOpen] = useState(false)
-  const [selectedMatrix, setSelectedMatrix] = useState<"A" | "B">("A")
-  const [remoteVersion, setRemoteVersion] = useState<string>("")
-  const [updateAvailable, setUpdateAvailable] = useState<boolean>(false)
-  const [showScrollButton, setShowScrollButton] = useState<boolean>(false)
+  const [matrixA, setMatrixA] = useState<Matrix>(createMatrix(2, 2));
+  const [matrixB, setMatrixB] = useState<Matrix>(createMatrix(2, 2));
+  const [steps, setSteps] = useState<CalculationStep[]>([]);
+  const [currentOperation, setCurrentOperation] = useState<string>("");
+  const [methodDialogOpen, setMethodDialogOpen] = useState(false);
+  const [selectedMatrix, setSelectedMatrix] = useState<"A" | "B">("A");
+  const [remoteVersion, setRemoteVersion] = useState<string>("");
+  const [updateAvailable, setUpdateAvailable] = useState<boolean>(false);
+  const [showScrollButton, setShowScrollButton] = useState<boolean>(false);
 
-  const [systemMatrixA, setSystemMatrixA] = useState<Matrix>(createMatrix(2, 2))
-  const [systemVectorB, setSystemVectorB] = useState<Matrix>(createMatrix(2, 1))
-  const [systemSolution, setSystemSolution] = useState<Matrix | null>(null)
-  const [systemCompatibility, setSystemCompatibility] = useState<string>("")
-  const [systemMethodDialogOpen, setSystemMethodDialogOpen] = useState(false)
-  const [selectedSystemMethod, setSelectedSystemMethod] = useState<"gauss" | "cramer" | "">("")
+  const [systemMatrixA, setSystemMatrixA] = useState<Matrix>(
+    createMatrix(2, 2),
+  );
+  const [systemVectorB, setSystemVectorB] = useState<Matrix>(
+    createMatrix(2, 1),
+  );
+  const [systemSolution, setSystemSolution] = useState<Matrix | null>(null);
+  const [systemCompatibility, setSystemCompatibility] = useState<string>("");
+  const [systemMethodDialogOpen, setSystemMethodDialogOpen] = useState(false);
+  const [selectedSystemMethod, setSelectedSystemMethod] = useState<
+    "gauss" | "cramer" | ""
+  >("");
 
-  const [symbolicMatrix, setSymbolicMatrix] = useState<Matrix>(createMatrix(2, 2))
-  const [symbolicMethodDialogOpen, setSymbolicMethodDialogOpen] = useState(false)
+  const [symbolicMatrix, setSymbolicMatrix] = useState<Matrix>(
+    createMatrix(2, 2),
+  );
+  const [symbolicMethodDialogOpen, setSymbolicMethodDialogOpen] =
+    useState(false);
 
   const [specialCases, setSpecialCases] = useState<
     Array<{
-      condition: string
-      solution: SymbolicSystemResult
+      condition: string;
+      solution: SymbolicSystemResult;
     }>
-  >([])
+  >([]);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   async function checkForUpdate() {
     try {
-      const response = await fetch("https://muhaddil.github.io/calculadora-matrices/version.json", {
-        cache: "no-store",
-      })
-      const remote = await response.json()
+      const response = await fetch(
+        "https://muhaddil.github.io/calculadora-matrices/version.json",
+        {
+          cache: "no-store",
+        },
+      );
+      const remote = await response.json();
       if (remote.version && remote.version !== currentVersion) {
-        setRemoteVersion(remote.version)
-        setUpdateAvailable(true)
+        setRemoteVersion(remote.version);
+        setUpdateAvailable(true);
       }
     } catch (e) {
-      console.warn("Error comprobando actualizaciones:", e)
+      console.warn("Error comprobando actualizaciones:", e);
     }
   }
 
   useEffect(() => {
-    checkForUpdate()
+    checkForUpdate();
 
     const interval = setInterval(
       () => {
-        checkForUpdate()
+        checkForUpdate();
       },
       5 * 60 * 1000,
-    )
+    );
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const handleOperation = (operation: "add" | "subtract" | "multiply") => {
     try {
-      let result
-      let operationName = ""
+      let result;
+      let operationName = "";
 
       switch (operation) {
         case "add":
-          result = addMatrices(matrixA, matrixB)
-          operationName = t("operations.sum")
-          break
+          result = addMatrices(matrixA, matrixB);
+          operationName = t("operations.sum");
+          break;
         case "subtract":
-          result = subtractMatrices(matrixA, matrixB)
-          operationName = t("operations.subtraction")
-          break
+          result = subtractMatrices(matrixA, matrixB);
+          operationName = t("operations.subtraction");
+          break;
         case "multiply":
-          result = multiplyMatrices(matrixA, matrixB)
-          operationName = t("operations.multiplication")
-          break
+          result = multiplyMatrices(matrixA, matrixB);
+          operationName = t("operations.multiplication");
+          break;
         default:
-          throw new Error(t("toasts.calculationError"))
+          throw new Error(t("toasts.calculationError"));
       }
 
-      setSteps(result.steps)
-      setCurrentOperation(operationName)
+      setSteps(result.steps);
+      setCurrentOperation(operationName);
 
       toast({
         title: t("toasts.calculationCompleted"),
-        description: t("toasts.completedDescription", { operation: operationName }),
-      })
+        description: t("toasts.completedDescription", {
+          operation: operationName,
+        }),
+      });
     } catch (error) {
       toast({
         title: t("toasts.calculationError"),
-        description: error instanceof Error ? error.message : t("toasts.unknownError"),
+        description:
+          error instanceof Error ? error.message : t("toasts.unknownError"),
         variant: "destructive",
-      })
-      setSteps([])
-      setCurrentOperation("")
+      });
+      setSteps([]);
+      setCurrentOperation("");
     }
-  }
+  };
 
   const handleDeterminantClick = (matrixType: "A" | "B") => {
-    const matrix = matrixType === "A" ? matrixA : matrixB
+    const matrix = matrixType === "A" ? matrixA : matrixB;
 
     if (matrix.length >= 3) {
-      setSelectedMatrix(matrixType)
-      setMethodDialogOpen(true)
+      setSelectedMatrix(matrixType);
+      setMethodDialogOpen(true);
     } else {
-      handleSingleMatrixOperation("determinant", matrix, "cofactors")
+      handleSingleMatrixOperation("determinant", matrix, "cofactors");
     }
-  }
+  };
 
   const handleMethodSelect = (method: "zeros" | "cofactors" | "sarrus") => {
-    const matrix = selectedMatrix === "A" ? matrixA : matrixB
+    const matrix = selectedMatrix === "A" ? matrixA : matrixB;
 
     try {
-      const result = calculateDeterminant(matrix, method)
+      const result = calculateDeterminant(matrix, method);
 
-      setSteps(result.steps)
-      setCurrentOperation(t("operations.determinant"))
+      setSteps(result.steps);
+      setCurrentOperation(t("operations.determinant"));
 
       const methodNames: Record<string, string> = {
         zeros: t("methods.zeros"),
         cofactors: t("methods.cofactors"),
         sarrus: t("methods.sarrus"),
-      }
+      };
 
       toast({
         title: t("toasts.determinantCalculated"),
         description: t("toasts.methodUsed", { method: methodNames[method] }),
-      })
+      });
     } catch (error) {
       toast({
         title: t("toasts.calculationError"),
-        description: error instanceof Error ? error.message : t("toasts.unknownError"),
+        description:
+          error instanceof Error ? error.message : t("toasts.unknownError"),
         variant: "destructive",
-      })
-      setSteps([])
-      setCurrentOperation("")
+      });
+      setSteps([]);
+      setCurrentOperation("");
     }
-  }
+  };
 
   const handleSingleMatrixOperation = (
     operation: "transpose" | "determinant" | "adjugate" | "inverse" | "rank",
@@ -198,118 +224,139 @@ const Index = () => {
     method?: "zeros" | "cofactors",
   ) => {
     try {
-      let result
-      let operationName = ""
+      let result;
+      let operationName = "";
 
       switch (operation) {
         case "transpose":
-          result = transposeMatrix(matrix)
-          operationName = t("operations.transpose")
-          break
+          result = transposeMatrix(matrix);
+          operationName = t("operations.transpose");
+          break;
         case "determinant":
-          result = calculateDeterminant(matrix, method)
-          operationName = t("operations.determinant")
-          break
+          result = calculateDeterminant(matrix, method);
+          operationName = t("operations.determinant");
+          break;
         case "adjugate":
-          result = calculateAdjugate(matrix)
-          operationName = t("operations.adjugate")
-          break
+          result = calculateAdjugate(matrix);
+          operationName = t("operations.adjugate");
+          break;
         case "inverse":
-          result = calculateInverse(matrix)
-          operationName = t("operations.inverse")
-          break
+          result = calculateInverse(matrix);
+          operationName = t("operations.inverse");
+          break;
         case "rank":
-          result = calculateRank(matrix)
-          operationName = t("operations.rank")
-          break
+          result = calculateRank(matrix);
+          operationName = t("operations.rank");
+          break;
         default:
-          throw new Error(t("toasts.calculationError"))
+          throw new Error(t("toasts.calculationError"));
       }
 
-      setSteps(result.steps)
-      setCurrentOperation(operationName)
+      setSteps(result.steps);
+      setCurrentOperation(operationName);
 
       toast({
         title: t("toasts.calculationCompleted"),
-        description: t("toasts.completedDescription", { operation: operationName }),
-      })
+        description: t("toasts.completedDescription", {
+          operation: operationName,
+        }),
+      });
     } catch (error) {
       toast({
         title: t("toasts.calculationError"),
-        description: error instanceof Error ? error.message : t("toasts.unknownError"),
+        description:
+          error instanceof Error ? error.message : t("toasts.unknownError"),
         variant: "destructive",
-      })
-      setSteps([])
-      setCurrentOperation("")
+      });
+      setSteps([]);
+      setCurrentOperation("");
     }
-  }
+  };
 
   const handleSystemSolve = (method: "gauss" | "cramer") => {
     try {
       const hasVariables =
-        systemMatrixA.some((row) => row.some((cell) => typeof cell === "string" && /[a-zA-Z]/.test(cell.toString()))) ||
-        systemVectorB.some((row) => row.some((cell) => typeof cell === "string" && /[a-zA-Z]/.test(cell.toString())))
+        systemMatrixA.some((row) =>
+          row.some(
+            (cell) =>
+              typeof cell === "string" && /[a-zA-Z]/.test(cell.toString()),
+          ),
+        ) ||
+        systemVectorB.some((row) =>
+          row.some(
+            (cell) =>
+              typeof cell === "string" && /[a-zA-Z]/.test(cell.toString()),
+          ),
+        );
 
       if (hasVariables) {
-        const result = solveSymbolicLinearSystem(systemMatrixA, systemVectorB, method)
+        const result = solveSymbolicLinearSystem(
+          systemMatrixA,
+          systemVectorB,
+          method,
+        );
 
-        setSteps(result.steps)
-        setSpecialCases(result.specialCases || [])
-        setCurrentOperation(`${t("operations.linearSystems")} (${t("badges.compatible")})`)
-        setSystemSolution(null)
-        setSystemCompatibility(result.compatibility)
+        setSteps(result.steps);
+        setSpecialCases(result.specialCases || []);
+        setCurrentOperation(
+          `${t("operations.linearSystems")} (${t("badges.compatible")})`,
+        );
+        setSystemSolution(null);
+        setSystemCompatibility(result.compatibility);
 
         toast({
           title: t("toasts.systemSolved"),
-          description: t("toasts.systemSolvedDescription", { compatibility: result.compatibility.toLowerCase() }),
-        })
+          description: t("toasts.systemSolvedDescription", {
+            compatibility: result.compatibility.toLowerCase(),
+          }),
+        });
       } else {
         const numericA = systemMatrixA.map((row) =>
           row.map((cell) => {
-            if (typeof cell === "number") return cell
-            const parsed = Number.parseFloat(cell)
-            return isNaN(parsed) ? 0 : parsed
+            if (typeof cell === "number") return cell;
+            const parsed = Number.parseFloat(cell);
+            return isNaN(parsed) ? 0 : parsed;
           }),
-        )
+        );
 
         const numericB = systemVectorB.map((row) =>
           row.map((cell) => {
-            if (typeof cell === "number") return cell
-            const parsed = Number.parseFloat(cell)
-            return isNaN(parsed) ? 0 : parsed
+            if (typeof cell === "number") return cell;
+            const parsed = Number.parseFloat(cell);
+            return isNaN(parsed) ? 0 : parsed;
           }),
-        )
+        );
 
-        const isSquare = systemMatrixA.length === systemMatrixA[0]?.length
-        const shouldUseCramer = method === "cramer" && isSquare
+        const isSquare = systemMatrixA.length === systemMatrixA[0]?.length;
+        const shouldUseCramer = method === "cramer" && isSquare;
 
         if (shouldUseCramer) {
-          const detA = calculateDeterminant(numericA, "cofactors").result[0][0]
+          const detA = calculateDeterminant(numericA, "cofactors").result[0][0];
           if (Math.abs(detA) < 1e-10) {
             toast({
               title: t("toasts.cramerNotApplicable"),
               description: t("toasts.cramerNotApplicableDescription"),
               variant: "destructive",
-            })
-            const result = solveLinearSystem(numericA, numericB)
-            setSteps(result.steps)
-            setCurrentOperation(t("operations.linearSystems"))
-            setSystemSolution(result.solution)
-            setSystemCompatibility(result.compatibility)
-            return
+            });
+            const result = solveLinearSystem(numericA, numericB);
+            setSteps(result.steps);
+            setCurrentOperation(t("operations.linearSystems"));
+            setSystemSolution(result.solution);
+            setSystemCompatibility(result.compatibility);
+            return;
           }
         }
 
         const result = shouldUseCramer
           ? solveLinearSystemWithCramer(numericA, numericB)
-          : solveLinearSystem(numericA, numericB)
+          : solveLinearSystem(numericA, numericB);
 
-        setSteps(result.steps)
+        setSteps(result.steps);
         setCurrentOperation(
           `${t("operations.linearSystems")} (${shouldUseCramer ? t("methods.cramer") : t("methods.gauss")})`,
-        )
-        setSystemSolution(result.solution)
-        setSystemCompatibility(result.compatibility)
+        );
+        setSystemSolution(result.solution);
+        setSystemCompatibility(result.compatibility);
 
         toast({
           title: t("toasts.systemSolvedNumeric"),
@@ -317,94 +364,100 @@ const Index = () => {
             compatibility: result.compatibility.toLowerCase(),
             method: shouldUseCramer ? t("methods.cramer") : t("methods.gauss"),
           }),
-        })
+        });
       }
     } catch (error) {
       toast({
         title: t("toasts.calculationError"),
-        description: error instanceof Error ? error.message : t("toasts.unknownError"),
+        description:
+          error instanceof Error ? error.message : t("toasts.unknownError"),
         variant: "destructive",
-      })
-      setSteps([])
-      setCurrentOperation("")
-      setSystemSolution(null)
-      setSystemCompatibility("")
-      setSpecialCases([])
+      });
+      setSteps([]);
+      setCurrentOperation("");
+      setSystemSolution(null);
+      setSystemCompatibility("");
+      setSpecialCases([]);
     }
-  }
+  };
 
   const handleSystemMethodSelect = (method: "gauss" | "cramer") => {
-    setSelectedSystemMethod(method)
-    setSystemMethodDialogOpen(false)
-    handleSystemSolve(method)
-  }
+    setSelectedSystemMethod(method);
+    setSystemMethodDialogOpen(false);
+    handleSystemSolve(method);
+  };
 
-  const handleSymbolicDeterminant = (method: "zeros" | "cofactors" | "sarrus") => {
+  const handleSymbolicDeterminant = (
+    method: "zeros" | "cofactors" | "sarrus",
+  ) => {
     try {
-      const symbolicMatrixParsed = parseSymbolicMatrix(symbolicMatrix)
-      const result = calculateSymbolicDeterminant(symbolicMatrixParsed, method)
+      const symbolicMatrixParsed = parseSymbolicMatrix(symbolicMatrix);
+      const result = calculateSymbolicDeterminant(symbolicMatrixParsed, method);
 
-      setSteps(result.steps)
-      setCurrentOperation(t("operations.symbolicDeterminantTitle"))
+      setSteps(result.steps);
+      setCurrentOperation(t("operations.symbolicDeterminantTitle"));
 
       const methodNames: Record<string, string> = {
         zeros: t("methods.zeros"),
         cofactors: t("methods.cofactors"),
         sarrus: t("methods.sarrus"),
-      }
+      };
 
       toast({
         title: t("toasts.symbolicDeterminantCalculated"),
         description: t("toasts.methodUsed", { method: methodNames[method] }),
-      })
+      });
     } catch (error) {
       toast({
         title: t("toasts.symbolicCalculationError"),
-        description: error instanceof Error ? error.message : t("toasts.unknownError"),
+        description:
+          error instanceof Error ? error.message : t("toasts.unknownError"),
         variant: "destructive",
-      })
-      setSteps([])
-      setCurrentOperation("")
+      });
+      setSteps([]);
+      setCurrentOperation("");
     }
-  }
+  };
 
-  const handleSymbolicMethodSelect = (method: "zeros" | "cofactors" | "sarrus") => {
+  const handleSymbolicMethodSelect = (
+    method: "zeros" | "cofactors" | "sarrus",
+  ) => {
     if (symbolicMatrix.length >= 3) {
-      handleSymbolicDeterminant(method)
-      setSymbolicMethodDialogOpen(false)
+      handleSymbolicDeterminant(method);
+      setSymbolicMethodDialogOpen(false);
     } else {
-      handleSymbolicDeterminant("cofactors")
-      setSymbolicMethodDialogOpen(false)
+      handleSymbolicDeterminant("cofactors");
+      setSymbolicMethodDialogOpen(false);
     }
-  }
+  };
 
   const clearResults = () => {
-    setSteps([])
-    setCurrentOperation("")
-    setSystemSolution(null)
-    setSystemCompatibility("")
-    setSpecialCases([])
-  }
+    setSteps([]);
+    setCurrentOperation("");
+    setSystemSolution(null);
+    setSystemCompatibility("");
+    setSpecialCases([]);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 300) {
-        setShowScrollButton(true)
+        setShowScrollButton(true);
       } else {
-        setShowScrollButton(false)
+        setShowScrollButton(false);
       }
-    }
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: "smooth",
-    })
-  }
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-bg relative">
@@ -412,9 +465,14 @@ const Index = () => {
         {updateAvailable && (
           <Alert className="mb-6 border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-800">
             <RefreshCw className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-            <AlertTitle className="text-blue-700 dark:text-blue-400">{t("alerts.updateAvailable")}</AlertTitle>
+            <AlertTitle className="text-blue-700 dark:text-blue-400">
+              {t("alerts.updateAvailable")}
+            </AlertTitle>
             <AlertDescription className="text-blue-600 dark:text-blue-300">
-              {t("alerts.updateDescription", { newVersion: remoteVersion, currentVersion: currentVersion })}
+              {t("alerts.updateDescription", {
+                newVersion: remoteVersion,
+                currentVersion: currentVersion,
+              })}
               <Button
                 variant="outline"
                 size="sm"
@@ -434,9 +492,13 @@ const Index = () => {
               <div className="p-3 bg-gradient-primary rounded-full">
                 <Calculator className="h-8 w-8 text-primary-foreground" />
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-foreground">{t("app.title")}</h1>
+              <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+                {t("app.title")}
+              </h1>
             </div>
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl">{t("app.subtitle")}</p>
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl">
+              {t("app.subtitle")}
+            </p>
           </div>
 
           <Button
@@ -450,13 +512,25 @@ const Index = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <MatrixInput label={t("operations.matrixA")} matrix={matrixA} onChange={setMatrixA} allowVariables={false} />
-          <MatrixInput label={t("operations.matrixB")} matrix={matrixB} onChange={setMatrixB} allowVariables={false} />
+          <MatrixInput
+            label={t("operations.matrixA")}
+            matrix={matrixA}
+            onChange={setMatrixA}
+            allowVariables={false}
+          />
+          <MatrixInput
+            label={t("operations.matrixB")}
+            matrix={matrixB}
+            onChange={setMatrixB}
+            allowVariables={false}
+          />
         </div>
 
         <div className="space-y-6 mb-8">
           <Card className="p-6 bg-linear-to-r from-card to-secondary/20 shadow-card-soft">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">{t("operations.twoMatrices")}</h2>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">
+              {t("operations.twoMatrices")}
+            </h2>
             <div className="flex flex-wrap gap-4">
               <Button
                 onClick={() => handleOperation("add")}
@@ -487,13 +561,19 @@ const Index = () => {
           </Card>
 
           <Card className="p-6 bg-linear-to-r from-card to-accent/10 shadow-card-soft">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">{t("operations.oneMatrix")}</h2>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">
+              {t("operations.oneMatrix")}
+            </h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
-                <h3 className="text-lg font-medium mb-3 text-foreground">{t("operations.matrixA")}</h3>
+                <h3 className="text-lg font-medium mb-3 text-foreground">
+                  {t("operations.matrixA")}
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={() => handleSingleMatrixOperation("transpose", matrixA)}
+                    onClick={() =>
+                      handleSingleMatrixOperation("transpose", matrixA)
+                    }
                     variant="outline"
                     className="border-accent text-accent hover:bg-accent hover:text-accent-foreground transition-smooth"
                   >
@@ -509,7 +589,9 @@ const Index = () => {
                     {t("buttons.determinant")}
                   </Button>
                   <Button
-                    onClick={() => handleSingleMatrixOperation("adjugate", matrixA)}
+                    onClick={() =>
+                      handleSingleMatrixOperation("adjugate", matrixA)
+                    }
                     variant="outline"
                     className="border-accent text-accent hover:bg-accent hover:text-accent-foreground transition-smooth"
                   >
@@ -517,7 +599,9 @@ const Index = () => {
                     {t("buttons.adjugate")}
                   </Button>
                   <Button
-                    onClick={() => handleSingleMatrixOperation("inverse", matrixA)}
+                    onClick={() =>
+                      handleSingleMatrixOperation("inverse", matrixA)
+                    }
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-smooth"
                   >
@@ -536,10 +620,14 @@ const Index = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-medium mb-3 text-foreground">{t("operations.matrixB")}</h3>
+                <h3 className="text-lg font-medium mb-3 text-foreground">
+                  {t("operations.matrixB")}
+                </h3>
                 <div className="flex flex-wrap gap-2">
                   <Button
-                    onClick={() => handleSingleMatrixOperation("transpose", matrixB)}
+                    onClick={() =>
+                      handleSingleMatrixOperation("transpose", matrixB)
+                    }
                     variant="outline"
                     className="border-accent text-accent hover:bg-accent hover:text-accent-foreground transition-smooth"
                   >
@@ -555,7 +643,9 @@ const Index = () => {
                     {t("buttons.determinant")}
                   </Button>
                   <Button
-                    onClick={() => handleSingleMatrixOperation("adjugate", matrixB)}
+                    onClick={() =>
+                      handleSingleMatrixOperation("adjugate", matrixB)
+                    }
                     variant="outline"
                     className="border-accent text-accent hover:bg-accent hover:text-accent-foreground transition-smooth"
                   >
@@ -563,7 +653,9 @@ const Index = () => {
                     {t("buttons.adjugate")}
                   </Button>
                   <Button
-                    onClick={() => handleSingleMatrixOperation("inverse", matrixB)}
+                    onClick={() =>
+                      handleSingleMatrixOperation("inverse", matrixB)
+                    }
                     variant="outline"
                     className="border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-smooth"
                   >
@@ -612,9 +704,9 @@ const Index = () => {
                   <Button
                     onClick={() => {
                       if (symbolicMatrix.length == 3) {
-                        setSymbolicMethodDialogOpen(true)
+                        setSymbolicMethodDialogOpen(true);
                       } else {
-                        handleSymbolicDeterminant("cofactors")
+                        handleSymbolicDeterminant("cofactors");
                       }
                     }}
                     className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg transition-smooth w-full py-3"
@@ -629,7 +721,7 @@ const Index = () => {
           </Collapsible>
 
           <Collapsible>
-            <Card className="p-6 bg-linear-to-r from-card to-purple-500/10 shadow-card-soft border-2 border-purple-200">
+            <Card className="p-6 bg-linear-to-r from-card to-purple-500/10 dark:to-purple-500/5 shadow-card-soft border-2 border-purple-200 dark:border-purple-800/40">
               <CollapsibleTrigger asChild>
                 <button className="flex items-center justify-between w-full text-left mb-4 group">
                   <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -644,12 +736,21 @@ const Index = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-lg font-medium mb-3 text-foreground">{t("operations.coefficientMatrix")}</h3>
-                      <MatrixInput label="" matrix={systemMatrixA} onChange={setSystemMatrixA} allowVariables={true} />
+                      <h3 className="text-lg font-medium mb-3 text-foreground">
+                        {t("operations.coefficientMatrix")}
+                      </h3>
+                      <MatrixInput
+                        label=""
+                        matrix={systemMatrixA}
+                        onChange={setSystemMatrixA}
+                        allowVariables={true}
+                      />
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-medium mb-3 text-foreground">{t("operations.independentTerms")}</h3>
+                      <h3 className="text-lg font-medium mb-3 text-foreground">
+                        {t("operations.independentTerms")}
+                      </h3>
                       <MatrixInput
                         label=""
                         matrix={systemVectorB}
@@ -665,7 +766,7 @@ const Index = () => {
 
                   <Button
                     onClick={() => {
-                      setSystemMethodDialogOpen(true)
+                      setSystemMethodDialogOpen(true);
                     }}
                     className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white shadow-lg transition-smooth w-full py-3"
                     size="lg"
@@ -675,7 +776,7 @@ const Index = () => {
                   </Button>
 
                   {systemCompatibility && (
-                    <div className="mt-4 p-4 bg-step-highlight rounded-lg border border-purple-200">
+                    <div className="mt-4 p-4 bg-step-highlight rounded-lg border border-accent/30">
                       <div className="flex items-center gap-3 mb-2">
                         <Badge
                           className={
@@ -686,12 +787,19 @@ const Index = () => {
                         >
                           {systemCompatibility}
                         </Badge>
-                        <Badge variant="outline" className="border-purple-400 text-purple-600">
-                          {selectedSystemMethod === "cramer" ? t("methods.cramerMethod") : t("methods.gaussMethod")}
+                        <Badge
+                          variant="outline"
+                          className="border-purple-400 dark:border-purple-600 text-purple-600 dark:text-purple-400"
+                        >
+                          {selectedSystemMethod === "cramer"
+                            ? t("methods.cramerMethod")
+                            : t("methods.gaussMethod")}
                         </Badge>
                       </div>
                       {systemSolution && (
-                        <span className="text-sm text-muted-foreground">{t("alerts.solutionFound")}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {t("alerts.solutionFound")}
+                        </span>
                       )}
                     </div>
                   )}
@@ -715,7 +823,9 @@ const Index = () => {
 
         {currentOperation && (
           <div className="mb-6">
-            <Badge className="bg-gradient-accent text-accent-foreground px-4 py-2 text-lg">{currentOperation}</Badge>
+            <Badge className="bg-gradient-accent text-accent-foreground px-4 py-2 text-lg">
+              {currentOperation}
+            </Badge>
           </div>
         )}
 
@@ -761,7 +871,7 @@ const Index = () => {
         </Button>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Index
+export default Index;

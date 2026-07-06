@@ -11,6 +11,10 @@
     "local_availability_title": "Limited availability:",
     "local_availability_message": "Currently, not everything is translated into the different languages."
   },
+  "theme": {
+    "light": "Light mode",
+    "dark": "Dark mode"
+  },
   "buttons": {
     "add": "Add (A + B)",
     "subtract": "Subtract (A - B)",

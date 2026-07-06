@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => ({
   base: "/calculadora-matrices/",
   plugins: [react()],
   optimizeDeps: {
-    include: ["katex", "mathjs"]
+    include: ["katex", "mathjs"],
   },
   resolve: {
     alias: {
@@ -24,8 +24,8 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("react-router")) return "router";
           if (id.includes("recharts") || id.includes("d3-")) return "charts";
           if (id.includes("node_modules")) return "vendor";
-        }
-      }
-    }
-  }
+        },
+      },
+    },
+  },
 }));

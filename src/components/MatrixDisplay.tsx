@@ -31,8 +31,9 @@ export const MatrixDisplay = ({
 
   return (
     <Card
-      className={`w-full p-4 ${highlight ? "bg-step-highlight border-accent" : "bg-card"
-        } border transition-smooth ${className}`}
+      className={`w-full p-4 ${
+        highlight ? "bg-step-highlight border-accent" : "bg-card"
+      } border transition-smooth ${className}`}
     >
       <div className="flex flex-col items-center w-full">
         {label && (
@@ -51,8 +52,14 @@ export const MatrixDisplay = ({
           )}
 
           <div className="relative w-full" style={{ overflow: "visible" }}>
-            <div className="absolute top-0 bottom-0 w-[3px] -translate-x-[6px] bg-primary rounded-full pointer-events-none" style={{ left: 0 }} />
-            <div className="absolute top-0 bottom-0 w-[3px] translate-x-[6px] bg-primary rounded-full pointer-events-none" style={{ right: 0 }} />
+            <div
+              className="absolute top-0 bottom-0 w-[3px] -translate-x-[6px] bg-primary rounded-full pointer-events-none"
+              style={{ left: 0 }}
+            />
+            <div
+              className="absolute top-0 bottom-0 w-[3px] translate-x-[6px] bg-primary rounded-full pointer-events-none"
+              style={{ right: 0 }}
+            />
 
             <div
               className={`w-full ${shouldScroll ? "overflow-auto max-h-64" : "overflow-visible"}`}
@@ -71,13 +78,22 @@ export const MatrixDisplay = ({
                 >
                   {matrix.map((row, i) =>
                     row.map((cell, j) => {
-                      const hasCustom = !!(customLabels && customLabels[i] && customLabels[i][j]);
-                      const titleText = hasCustom ? String(customLabels![i][j]) : String(cell);
+                      const hasCustom = !!(
+                        customLabels &&
+                        customLabels[i] &&
+                        customLabels[i][j]
+                      );
+                      const titleText = hasCustom
+                        ? String(customLabels![i][j])
+                        : String(cell);
 
-                      const plainContent =
-                        fraction ? Math.round(cell) :
-                          showAsFraction ? formatAsFraction(cell) :
-                            Number.isInteger(cell) ? cell : cell.toFixed(2);
+                      const plainContent = fraction
+                        ? Math.round(cell)
+                        : showAsFraction
+                          ? formatAsFraction(cell)
+                          : Number.isInteger(cell)
+                            ? cell
+                            : cell.toFixed(2);
 
                       return (
                         <div
@@ -111,7 +127,7 @@ export const MatrixDisplay = ({
                           </div>
                         </div>
                       );
-                    })
+                    }),
                   )}
                 </div>
               </div>

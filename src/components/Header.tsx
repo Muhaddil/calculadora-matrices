@@ -1,29 +1,40 @@
-"use client"
+"use client";
 
-import { useTranslation } from "react-i18next"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import ReactCountryFlag from "react-country-flag"
-import { useState, useMemo } from "react"
-import i18n from "@/i18n/config"
+import { useTranslation } from "react-i18next";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import ReactCountryFlag from "react-country-flag";
+import { useState, useMemo } from "react";
+import { Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import i18n from "@/i18n/config";
 
 export const Header = () => {
-  const { t } = useTranslation()
-  const [search, setSearch] = useState("")
-  const [open, setOpen] = useState(false)
+  const { t } = useTranslation();
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
-  const languages = useMemo(() => Object.keys(i18n.options.resources || {}), [])
+  const languages = useMemo(
+    () => Object.keys(i18n.options.resources || {}),
+    [],
+  );
 
   const filteredLangs = languages.filter((lng) =>
-    lng.toLowerCase().includes(search.toLowerCase())
-  )
+    lng.toLowerCase().includes(search.toLowerCase()),
+  );
 
   const handleLanguageChange = (language: string) => {
-    i18n.changeLanguage(language)
-    document.documentElement.lang = language
-    setOpen(false)
-  }
+    i18n.changeLanguage(language);
+    document.documentElement.lang = language;
+    setOpen(false);
+  };
 
   const getFlag = (lang: string) => {
     const map: Record<string, string> = {
@@ -37,30 +48,43 @@ export const Header = () => {
       zh: "CN", // Chino
       ja: "JP", // Japonés
       ko: "KR", // Coreano
-    }
-    return map[lang] || "UN"
-  }
+    };
+    return map[lang] || "UN";
+  };
 
   const getLanguageName = (lang: string) => {
     try {
-      const display = new Intl.DisplayNames([lang], { type: "language" })
-      return display.of(lang)
+      const display = new Intl.DisplayNames([lang], { type: "language" });
+      return display.of(lang);
     } catch {
-      return lang.toUpperCase()
+      return lang.toUpperCase();
     }
-  }
+  };
 
   const formatLanguageName = (name: string) => {
-    if (!name) return ""
-    return name.charAt(0).toUpperCase() + name.slice(1)
-  }
+    if (!name) return "";
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  };
 
   return (
     <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 max-w-6xl flex justify-end">
+      <div className="container mx-auto px-4 py-4 max-w-6xl flex justify-end gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleTheme}
+          className="h-9 w-9 bg-transparent"
+          aria-label={isDark ? t("theme.light") : t("theme.dark")}
+        >
+          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 bg-transparent"
+            >
               <ReactCountryFlag
                 countryCode={getFlag(i18n.language)}
                 svg
@@ -73,7 +97,9 @@ export const Header = () => {
           <DropdownMenuContent align="end" className="w-48 p-2">
             {languages.length > 5 && (
               <Input
-                placeholder={t("navigation.search_language") || "Buscar idioma..."}
+                placeholder={
+                  t("navigation.search_language") || "Buscar idioma..."
+                }
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="mb-2"
@@ -97,5 +123,5 @@ export const Header = () => {
         </DropdownMenu>
       </div>
     </header>
-  )
-}
+  );
+};

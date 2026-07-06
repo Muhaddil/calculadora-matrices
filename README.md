@@ -9,7 +9,7 @@ Una aplicación web interactiva para realizar operaciones con matrices, desarrol
 ## Características
 
 - **Operaciones básicas**: Suma, resta y multiplicación de matrices
-- **Operaciones avanzadas**: 
+- **Operaciones avanzadas**:
   - Cálculo de determinantes (métodos: Cofactores, Sarrus, Gauss)
   - Transposición de matrices
   - Cálculo de matriz adjunta
@@ -66,4 +66,3 @@ Este proyecto está licenciado bajo la Licencia GNU GENERAL PUBLIC LICENSE - ver
 ## Contribuir
 
 Las contribuciones son bienvenidas. Por favor, abre un "issue" o "pull request" para sugerir cambios o mejoras.
-        

@@ -15,7 +15,7 @@ export interface MatrixOperationResult {
 export const createMatrix = (
   rows: number,
   cols: number,
-  defaultValue = 0
+  defaultValue = 0,
 ): Matrix => {
   return Array(rows)
     .fill(null)
@@ -35,7 +35,10 @@ export const addMatrices = (a: Matrix, b: Matrix): MatrixOperationResult => {
   steps.push({
     stepNumber: 1,
     title: t("matrixOperations.dimensionVerification"),
-    description: t("matrixOperations.dimensionVerificationDescriptionAdd", { rows, cols }),
+    description: t("matrixOperations.dimensionVerificationDescriptionAdd", {
+      rows,
+      cols,
+    }),
     matrices: [
       { label: "\\text{" + t("matrixOperations.matrixA") + "}", matrix: a },
       { label: "\\text{" + t("matrixOperations.matrixB") + "}", matrix: b },
@@ -55,7 +58,9 @@ export const addMatrices = (a: Matrix, b: Matrix): MatrixOperationResult => {
     for (let j = 0; j < cols; j++) {
       const sum = a[i][j] + b[i][j];
       row.push(sum);
-      calculations.push(`C_{${i + 1},${j + 1}} = ${a[i][j]} + ${b[i][j]} = ${sum}`);
+      calculations.push(
+        `C_{${i + 1},${j + 1}} = ${a[i][j]} + ${b[i][j]} = ${sum}`,
+      );
     }
     result.push(row);
   }
@@ -68,14 +73,21 @@ export const addMatrices = (a: Matrix, b: Matrix): MatrixOperationResult => {
     matrices: [
       { label: "\\text{" + t("matrixOperations.matrixA") + "}", matrix: a },
       { label: "\\text{" + t("matrixOperations.matrixB") + "}", matrix: b },
-      { label: "\\text{" + t("matrixOperations.resultAdd") + "}", matrix: result, highlight: true },
+      {
+        label: "\\text{" + t("matrixOperations.resultAdd") + "}",
+        matrix: result,
+        highlight: true,
+      },
     ],
   });
 
   return { result, steps };
 };
 
-export const subtractMatrices = (a: Matrix, b: Matrix): MatrixOperationResult => {
+export const subtractMatrices = (
+  a: Matrix,
+  b: Matrix,
+): MatrixOperationResult => {
   if (a.length !== b.length || a[0].length !== b[0].length) {
     throw new Error(t("matrixOperations.dimensionErrorSubtract"));
   }
@@ -88,10 +100,19 @@ export const subtractMatrices = (a: Matrix, b: Matrix): MatrixOperationResult =>
   steps.push({
     stepNumber: 1,
     title: t("matrixOperations.dimensionVerification"),
-    description: t("matrixOperations.dimensionVerificationDescriptionSubtract", { rows, cols }),
+    description: t(
+      "matrixOperations.dimensionVerificationDescriptionSubtract",
+      { rows, cols },
+    ),
     matrices: [
-      { label: "\\text{" + t("matrixOperations.matrixAMinuend") + "}", matrix: a },
-      { label: "\\text{" + t("matrixOperations.matrixBSubtrahend") + "}", matrix: b },
+      {
+        label: "\\text{" + t("matrixOperations.matrixAMinuend") + "}",
+        matrix: a,
+      },
+      {
+        label: "\\text{" + t("matrixOperations.matrixBSubtrahend") + "}",
+        matrix: b,
+      },
     ],
   });
 
@@ -108,7 +129,9 @@ export const subtractMatrices = (a: Matrix, b: Matrix): MatrixOperationResult =>
     for (let j = 0; j < cols; j++) {
       const diff = a[i][j] - b[i][j];
       row.push(diff);
-      calculations.push(`C_{${i + 1},${j + 1}} = ${a[i][j]} - ${b[i][j]} = ${diff}`);
+      calculations.push(
+        `C_{${i + 1},${j + 1}} = ${a[i][j]} - ${b[i][j]} = ${diff}`,
+      );
     }
     result.push(row);
   }
@@ -121,7 +144,11 @@ export const subtractMatrices = (a: Matrix, b: Matrix): MatrixOperationResult =>
     matrices: [
       { label: "\\text{" + t("matrixOperations.matrixA") + "}", matrix: a },
       { label: "\\text{" + t("matrixOperations.matrixB") + "}", matrix: b },
-      { label: "\\text{" + t("matrixOperations.resultSubtract") + "}", matrix: result, highlight: true },
+      {
+        label: "\\text{" + t("matrixOperations.resultSubtract") + "}",
+        matrix: result,
+        highlight: true,
+      },
     ],
   });
 
@@ -130,7 +157,7 @@ export const subtractMatrices = (a: Matrix, b: Matrix): MatrixOperationResult =>
 
 export const multiplyMatrices = (
   a: Matrix,
-  b: Matrix
+  b: Matrix,
 ): MatrixOperationResult => {
   if (a[0].length !== b.length) {
     throw new Error(t("matrixOperations.dimensionErrorMultiply"));
@@ -191,8 +218,8 @@ export const multiplyMatrices = (
 
       detailedCalculations.push(
         `C_{${i + 1},${j + 1}} = ${symbolicTerms.join(
-          " + "
-        )} = ${evaluatedTerms.join(" + ")} = ${sum}`
+          " + ",
+        )} = ${evaluatedTerms.join(" + ")} = ${sum}`,
       );
     }
   }
@@ -202,7 +229,13 @@ export const multiplyMatrices = (
     title: t("matrixOperations.detailedCalculationsTitleMultiply"),
     description: t("matrixOperations.detailedCalculationsDescriptionMultiply"),
     formula: detailedCalculations.join(" \\\\ "),
-    matrices: [{ label: "\\text{" + t("matrixOperations.resultMultiply") + "}", matrix: result, highlight: true }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.resultMultiply") + "}",
+        matrix: result,
+        highlight: true,
+      },
+    ],
   });
 
   return { result, steps };
@@ -217,8 +250,16 @@ export const transposeMatrix = (matrix: Matrix): MatrixOperationResult => {
   steps.push({
     stepNumber: 1,
     title: t("matrixOperations.transposeOriginalMatrix"),
-    description: t("matrixOperations.transposeOriginalDescription", { rows, cols }),
-    matrices: [{ label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}", matrix }],
+    description: t("matrixOperations.transposeOriginalDescription", {
+      rows,
+      cols,
+    }),
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}",
+        matrix,
+      },
+    ],
   });
 
   steps.push({
@@ -244,7 +285,7 @@ A_{2,3} \\rightarrow A^T_{3,2} \\\\
       result[j][i] = matrix[i][j];
       if (transformations.length < 6) {
         transformations.push(
-          `A_{${i + 1},${j + 1}} = ${matrix[i][j]} \\rightarrow A^T_{${j + 1},${i + 1}} = ${matrix[i][j]} \\\\`
+          `A_{${i + 1},${j + 1}} = ${matrix[i][j]} \\rightarrow A^T_{${j + 1},${i + 1}} = ${matrix[i][j]} \\\\`,
         );
       }
     }
@@ -258,8 +299,18 @@ A_{2,3} \\rightarrow A^T_{3,2} \\\\
       transformations.join("\n") +
       (rows * cols > 6 ? "\n\\dots \\,\\text{(y así sucesivamente)}" : ""),
     matrices: [
-      { label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}", matrix },
-      { label: "\\text{" + t("matrixOperations.transposeResultLabel").replace(" A^T", "") + "} A^{T}", matrix: result, highlight: true },
+      {
+        label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}",
+        matrix,
+      },
+      {
+        label:
+          "\\text{" +
+          t("matrixOperations.transposeResultLabel").replace(" A^T", "") +
+          "} A^{T}",
+        matrix: result,
+        highlight: true,
+      },
     ],
   });
 
@@ -268,7 +319,7 @@ A_{2,3} \\rightarrow A^T_{3,2} \\\\
 
 export const calculateDeterminant = (
   matrix: Matrix,
-  method: "zeros" | "cofactors" | "sarrus" = "zeros"
+  method: "zeros" | "cofactors" | "sarrus" = "zeros",
 ): MatrixOperationResult => {
   if (matrix.length !== matrix[0].length) {
     throw new Error(t("matrixOperations.determinantSquareError"));
@@ -282,9 +333,14 @@ export const calculateDeterminant = (
     title: t("matrixOperations.determinantCheckTitle"),
     description: t("matrixOperations.determinantCheckDescription", {
       n: n,
-      method: getMethodDescription(method, n)
+      method: getMethodDescription(method, n),
     }),
-    matrices: [{ label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}", matrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}",
+        matrix,
+      },
+    ],
   });
 
   let det: number;
@@ -295,7 +351,12 @@ export const calculateDeterminant = (
       title: t("matrixOperations.determinant1x1Title"),
       description: t("matrixOperations.determinant1x1Description"),
       formula: `det(A) = a₁₁ = ${det}`,
-      matrices: [{ label: "\\text{" + t("matrixOperations.determinantLabel") + "}", matrix: [[det]] }],
+      matrices: [
+        {
+          label: "\\text{" + t("matrixOperations.determinantLabel") + "}",
+          matrix: [[det]],
+        },
+      ],
     });
   } else if (n === 2) {
     const a = matrix[0][0],
@@ -308,19 +369,24 @@ export const calculateDeterminant = (
       title: t("matrixOperations.determinant2x2Title"),
       description: `${t("matrixOperations.determinantFormulaLabel")}: ad - bc\n${a}×${d} = ${a * d}\n${b}×${c} = ${b * c}\n${a * d} - ${b * c} = ${det}`,
       formula: `det(A) = ad - bc = ${det}`,
-      matrices: [{ label: "\\text{" + t("matrixOperations.determinantLabel") + "}", matrix: [[det]] }],
+      matrices: [
+        {
+          label: "\\text{" + t("matrixOperations.determinantLabel") + "}",
+          matrix: [[det]],
+        },
+      ],
     });
   } else if (n === 3) {
     if (method === "sarrus") {
-      det = calculateDeterminant3x3Sarrus(matrix, steps)
+      det = calculateDeterminant3x3Sarrus(matrix, steps);
     } else {
-      det = calculateDeterminant3x3Cofactors(matrix, steps)
+      det = calculateDeterminant3x3Cofactors(matrix, steps);
     }
   } else {
     if (method === "zeros") {
-      det = calculateDeterminantWithZeros(matrix, steps)
+      det = calculateDeterminantWithZeros(matrix, steps);
     } else {
-      det = calculateDeterminantWithCofactors(matrix, steps)
+      det = calculateDeterminantWithCofactors(matrix, steps);
     }
   }
 
@@ -330,17 +396,22 @@ export const calculateDeterminant = (
     description: t("matrixOperations.determinantFinalDescription", {
       n,
       det,
-      interpretation: det === 0
-        ? t("matrixOperations.determinantSingular")
-        : t("matrixOperations.determinantRegular"),
+      interpretation:
+        det === 0
+          ? t("matrixOperations.determinantSingular")
+          : t("matrixOperations.determinantRegular"),
     }),
     formula: `det(A) = ${det}`,
-    matrices: [{ label: "\\text{" + t("matrixOperations.determinantFinalLabel") + "}", matrix: [[det]] }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.determinantFinalLabel") + "}",
+        matrix: [[det]],
+      },
+    ],
   });
 
-
-  return { result: [[det]], steps }
-}
+  return { result: [[det]], steps };
+};
 
 const getMethodDescription = (method: string, n: number): string => {
   if (n === 3) {
@@ -355,14 +426,22 @@ const getMethodDescription = (method: string, n: number): string => {
   return t("matrixOperations.directMethod");
 };
 
-const calculateDeterminant3x3Sarrus = (matrix: Matrix, steps: CalculationStep[]): number => {
+const calculateDeterminant3x3Sarrus = (
+  matrix: Matrix,
+  steps: CalculationStep[],
+): number => {
   const [[a, b, c], [d, e, f], [g, h, i]] = matrix;
   steps.push({
     stepNumber: 2,
     title: t("matrixOperations.sarrusMethodTitle"),
     description: t("matrixOperations.sarrusMethodDescription"),
     formula: "det(A) = aei + bfg + cdh - ceg - bdi - afh",
-    matrices: [{ label: "\\text{" + t("matrixOperations.sarrusMatrixLabel") + "}", matrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.sarrusMatrixLabel") + "}",
+        matrix,
+      },
+    ],
   });
   const aei = a * e * i;
   const bfg = b * f * g;
@@ -374,13 +453,31 @@ const calculateDeterminant3x3Sarrus = (matrix: Matrix, steps: CalculationStep[])
     stepNumber: 3,
     title: t("matrixOperations.sarrusDiagonalProductsTitle"),
     description: t("matrixOperations.sarrusDiagonalProductsDescription", {
-      a, b, c, d, e, f, g, h, i,
-      aei, bfg, cdh, ceg, bdi, afh
+      a,
+      b,
+      c,
+      d,
+      e,
+      f,
+      g,
+      h,
+      i,
+      aei,
+      bfg,
+      cdh,
+      ceg,
+      bdi,
+      afh,
     }),
     formula: t("matrixOperations.sarrusDiagonalProductsFormula", {
-      aei, bfg, cdh, ceg, bdi, afh,
+      aei,
+      bfg,
+      cdh,
+      ceg,
+      bdi,
+      afh,
       sumPositive: aei + bfg + cdh,
-      sumNegative: ceg + bdi + afh
+      sumNegative: ceg + bdi + afh,
     }),
   });
   const det = aei + bfg + cdh - ceg - bdi - afh;
@@ -388,25 +485,47 @@ const calculateDeterminant3x3Sarrus = (matrix: Matrix, steps: CalculationStep[])
     stepNumber: 4,
     title: t("matrixOperations.sarrusFinalTitle"),
     description: t("matrixOperations.sarrusFinalDescriptionWithValues", {
-      aei, bfg, cdh, ceg, bdi, afh,
+      aei,
+      bfg,
+      cdh,
+      ceg,
+      bdi,
+      afh,
       sumPositive: aei + bfg + cdh,
       sumNegative: ceg + bdi + afh,
-      det
+      det,
     }),
     formula: `det(A) = ${det}`,
-    matrices: [{ label: "\\text{" + t("matrixOperations.sarrusDeterminantLabel") + "}", matrix: [[det]] }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.sarrusDeterminantLabel") + "}",
+        matrix: [[det]],
+      },
+    ],
   });
   return det;
 };
 
-const calculateDeterminant3x3Cofactors = (matrix: Matrix, steps: CalculationStep[]): number => {
+const calculateDeterminant3x3Cofactors = (
+  matrix: Matrix,
+  steps: CalculationStep[],
+): number => {
   const [[a, b, c], [d, e, f], [g, h, i]] = matrix;
   steps.push({
     stepNumber: 2,
     title: t("matrixOperations.cofactors3x3MethodTitle"),
-    description: t("matrixOperations.cofactors3x3MethodDescriptionWithValues", { a, b, c }),
+    description: t("matrixOperations.cofactors3x3MethodDescriptionWithValues", {
+      a,
+      b,
+      c,
+    }),
     formula: t("matrixOperations.cofactors3x3Formula"),
-    matrices: [{ label: "\\text{" + t("matrixOperations.sarrusMatrixLabel") + "}", matrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.sarrusMatrixLabel") + "}",
+        matrix,
+      },
+    ],
   });
 
   const c11 = e * i - f * h;
@@ -416,14 +535,21 @@ const calculateDeterminant3x3Cofactors = (matrix: Matrix, steps: CalculationStep
     stepNumber: 3,
     title: t("matrixOperations.cofactors3x3StepTitle"),
     description: t("matrixOperations.cofactors3x3StepDescriptionWithValues", {
-      e, f, h, i, d, g,
+      e,
+      f,
+      h,
+      i,
+      d,
+      g,
       ei: e * i,
       fh: f * h,
       di: d * i,
       fg: f * g,
       dh: d * h,
       eg: e * g,
-      c11, c12, c13
+      c11,
+      c12,
+      c13,
     }),
     formula: t("matrixOperations.cofactors3x3StepFormula"),
   });
@@ -433,20 +559,33 @@ const calculateDeterminant3x3Cofactors = (matrix: Matrix, steps: CalculationStep
     stepNumber: 4,
     title: t("matrixOperations.cofactors3x3FinalTitle"),
     description: t("matrixOperations.cofactors3x3FinalDescriptionWithValues", {
-      a, b, c, c11, c12, c13,
+      a,
+      b,
+      c,
+      c11,
+      c12,
+      c13,
       a_c11: a * c11,
       b_c12: b * c12,
       c_c13: c * c13,
-      det
+      det,
     }),
     formula: `det(A) = ${det}`,
-    matrices: [{ label: "\\text{" + t("matrixOperations.determinantLabel") + "}", matrix: [[det]] }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.determinantLabel") + "}",
+        matrix: [[det]],
+      },
+    ],
   });
 
   return det;
 };
 
-const calculateDeterminantWithZeros = (matrix: Matrix, steps: CalculationStep[]): number => {
+const calculateDeterminantWithZeros = (
+  matrix: Matrix,
+  steps: CalculationStep[],
+): number => {
   const n = matrix.length;
   let stepCounter = 2;
   let currentMatrix = matrix.map((row) => [...row]);
@@ -456,11 +595,20 @@ const calculateDeterminantWithZeros = (matrix: Matrix, steps: CalculationStep[])
     stepNumber: stepCounter++,
     title: t("matrixOperations.zerosMethodTitle"),
     description: t("matrixOperations.zerosMethodDescription"),
-    matrices: [{ label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}", matrix: currentMatrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}",
+        matrix: currentMatrix,
+      },
+    ],
   });
 
-  const { bestType, bestIndex, zerosCount } = findBestRowOrColumn(currentMatrix);
-  const typeText = bestType === "fila" ? t("matrixOperations.bestRow") : t("matrixOperations.bestColumn");
+  const { bestType, bestIndex, zerosCount } =
+    findBestRowOrColumn(currentMatrix);
+  const typeText =
+    bestType === "fila"
+      ? t("matrixOperations.bestRow")
+      : t("matrixOperations.bestColumn");
 
   steps.push({
     stepNumber: stepCounter++,
@@ -470,48 +618,67 @@ const calculateDeterminantWithZeros = (matrix: Matrix, steps: CalculationStep[])
       index: bestIndex + 1,
       count: zerosCount,
     }),
-    matrices: [{ label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}", matrix: currentMatrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.transposeOriginalLabel") + "}",
+        matrix: currentMatrix,
+      },
+    ],
   });
 
   if (zerosCount < n - 2) {
-    const result = createZerosInRowOrColumn(currentMatrix, bestType, bestIndex, steps, stepCounter);
+    const result = createZerosInRowOrColumn(
+      currentMatrix,
+      bestType,
+      bestIndex,
+      steps,
+      stepCounter,
+    );
     currentMatrix = result.matrix;
     detMultiplier *= result.multiplier;
     stepCounter = result.nextStep;
   }
 
-  const det = developByOptimalRowOrColumn(currentMatrix, bestType, bestIndex, steps, stepCounter);
+  const det = developByOptimalRowOrColumn(
+    currentMatrix,
+    bestType,
+    bestIndex,
+    steps,
+    stepCounter,
+  );
   return det * detMultiplier;
 };
 
 const findBestRowOrColumn = (
   matrix: Matrix,
 ): { bestType: "fila" | "columna"; bestIndex: number; zerosCount: number } => {
-  const n = matrix.length
-  let bestType: "fila" | "columna" = "fila"
-  let bestIndex = 0
-  let maxZeros = 0
+  const n = matrix.length;
+  let bestType: "fila" | "columna" = "fila";
+  let bestIndex = 0;
+  let maxZeros = 0;
 
   for (let i = 0; i < n; i++) {
-    const zerosInRow = matrix[i].filter((x) => Math.abs(x) < 1e-10).length
+    const zerosInRow = matrix[i].filter((x) => Math.abs(x) < 1e-10).length;
     if (zerosInRow > maxZeros) {
-      maxZeros = zerosInRow
-      bestType = "fila"
-      bestIndex = i
+      maxZeros = zerosInRow;
+      bestType = "fila";
+      bestIndex = i;
     }
   }
 
   for (let j = 0; j < n; j++) {
-    const zerosInCol = matrix.map((row) => row[j]).filter((x) => Math.abs(x) < 1e-10).length
+    const zerosInCol = matrix
+      .map((row) => row[j])
+      .filter((x) => Math.abs(x) < 1e-10).length;
     if (zerosInCol > maxZeros) {
-      maxZeros = zerosInCol
-      bestType = "columna"
-      bestIndex = j
+      maxZeros = zerosInCol;
+      bestType = "columna";
+      bestIndex = j;
     }
   }
 
-  return { bestType, bestIndex, zerosCount: maxZeros }
-}
+  return { bestType, bestIndex, zerosCount: maxZeros };
+};
 
 const createZerosInRowOrColumn = (
   matrix: Matrix,
@@ -530,9 +697,17 @@ const createZerosInRowOrColumn = (
 
   steps.push({
     stepNumber: stepCounter++,
-    title: t("matrixOperations.createZerosTitle", { type: translatedType, index: index + 1 }),
+    title: t("matrixOperations.createZerosTitle", {
+      type: translatedType,
+      index: index + 1,
+    }),
     description: t("matrixOperations.createZerosDescription"),
-    matrices: [{ label: "\\text{" + t("matrixOperations.matrixBeforeZeros") + "}", matrix: currentMatrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.matrixBeforeZeros") + "}",
+        matrix: currentMatrix,
+      },
+    ],
   });
 
   if (type === "fila") {
@@ -543,7 +718,8 @@ const createZerosInRowOrColumn = (
         break;
       }
     }
-    if (pivotCol === -1) return { matrix: currentMatrix, multiplier, nextStep: stepCounter };
+    if (pivotCol === -1)
+      return { matrix: currentMatrix, multiplier, nextStep: stepCounter };
 
     const pivot = currentMatrix[index][pivotCol];
     steps.push({
@@ -555,7 +731,11 @@ const createZerosInRowOrColumn = (
         pivot,
         type: translatedType,
       }),
-      formula: t("matrixOperations.pivotFormula", { row: index + 1, col: pivotCol + 1, pivot }),
+      formula: t("matrixOperations.pivotFormula", {
+        row: index + 1,
+        col: pivotCol + 1,
+        pivot,
+      }),
     });
 
     for (let i = 0; i < n; i++) {
@@ -564,7 +744,10 @@ const createZerosInRowOrColumn = (
       const factor = currentMatrix[i][pivotCol] / pivot;
       steps.push({
         stepNumber: stepCounter++,
-        title: t("matrixOperations.eliminatingElementTitle", { i: i + 1, j: pivotCol + 1 }),
+        title: t("matrixOperations.eliminatingElementTitle", {
+          i: i + 1,
+          j: pivotCol + 1,
+        }),
         description: t("matrixOperations.eliminatingElementDescription", {
           i: i + 1,
           j: pivotCol + 1,
@@ -573,7 +756,9 @@ const createZerosInRowOrColumn = (
           factor,
           operation: `F${i + 1} = F${i + 1} - (${factor}) × F${index + 1}`,
         }),
-        formula: t("matrixOperations.eliminatingElementFormula", { operation: `F${i + 1} ← F${i + 1} - ${factor} × F${index + 1}` }),
+        formula: t("matrixOperations.eliminatingElementFormula", {
+          operation: `F${i + 1} ← F${i + 1} - ${factor} × F${index + 1}`,
+        }),
       });
 
       for (let j = 0; j < n; j++) {
@@ -589,7 +774,12 @@ const createZerosInRowOrColumn = (
           i: i + 1,
           j: pivotCol + 1,
         }),
-        matrices: [{ label: "\\text{" + t("matrixOperations.matrixAfterOperation") + "}", matrix: currentMatrix.map((row) => [...row]) }],
+        matrices: [
+          {
+            label: "\\text{" + t("matrixOperations.matrixAfterOperation") + "}",
+            matrix: currentMatrix.map((row) => [...row]),
+          },
+        ],
       });
     }
   } else {
@@ -600,7 +790,8 @@ const createZerosInRowOrColumn = (
         break;
       }
     }
-    if (pivotRow === -1) return { matrix: currentMatrix, multiplier, nextStep: stepCounter };
+    if (pivotRow === -1)
+      return { matrix: currentMatrix, multiplier, nextStep: stepCounter };
 
     const pivot = currentMatrix[pivotRow][index];
     steps.push({
@@ -612,7 +803,11 @@ const createZerosInRowOrColumn = (
         pivot,
         type: translatedType,
       }),
-      formula: t("matrixOperations.pivotFormula", { row: pivotRow + 1, col: index + 1, pivot }),
+      formula: t("matrixOperations.pivotFormula", {
+        row: pivotRow + 1,
+        col: index + 1,
+        pivot,
+      }),
     });
 
     for (let j = 0; j < n; j++) {
@@ -621,7 +816,10 @@ const createZerosInRowOrColumn = (
       const factor = currentMatrix[pivotRow][j] / pivot;
       steps.push({
         stepNumber: stepCounter++,
-        title: t("matrixOperations.eliminatingElementTitle", { i: pivotRow + 1, j: j + 1 }),
+        title: t("matrixOperations.eliminatingElementTitle", {
+          i: pivotRow + 1,
+          j: j + 1,
+        }),
         description: t("matrixOperations.eliminatingElementDescription", {
           i: pivotRow + 1,
           j: j + 1,
@@ -630,7 +828,9 @@ const createZerosInRowOrColumn = (
           factor,
           operation: `C${j + 1} = C${j + 1} - (${factor}) × C${index + 1}`,
         }),
-        formula: t("matrixOperations.eliminatingElementFormula", { operation: `C${j + 1} ← C${j + 1} - ${factor} × C${index + 1}` }),
+        formula: t("matrixOperations.eliminatingElementFormula", {
+          operation: `C${j + 1} ← C${j + 1} - ${factor} × C${index + 1}`,
+        }),
       });
 
       for (let i = 0; i < n; i++) {
@@ -646,7 +846,12 @@ const createZerosInRowOrColumn = (
           i: pivotRow + 1,
           j: j + 1,
         }),
-        matrices: [{ label: "\\text{" + t("matrixOperations.matrixAfterOperation") + "}", matrix: currentMatrix.map((row) => [...row]) }],
+        matrices: [
+          {
+            label: "\\text{" + t("matrixOperations.matrixAfterOperation") + "}",
+            matrix: currentMatrix.map((row) => [...row]),
+          },
+        ],
       });
     }
   }
@@ -670,20 +875,23 @@ const developByOptimalRowOrColumn = (
     stepNumber: stepCounter++,
     title: t("matrixOperations.developByRowOrColumnTitle", {
       type: translatedType,
-      index: index + 1
+      index: index + 1,
     }),
     description: t("matrixOperations.developByRowOrColumnDescription", {
       type: translatedType,
-      index: index + 1
+      index: index + 1,
     }),
-    matrices: [{
-      label: `\\text{${t("matrixOperations.optimizedMatrixLabel", { n })}}`,
-      matrix: matrix
-    }],
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.optimizedMatrixLabel", { n })}}`,
+        matrix: matrix,
+      },
+    ],
   });
 
   let det = 0;
-  const elements = type === "fila" ? matrix[index] : matrix.map((row) => row[index]);
+  const elements =
+    type === "fila" ? matrix[index] : matrix.map((row) => row[index]);
 
   for (let j = 0; j < n; j++) {
     const element = elements[j];
@@ -691,7 +899,10 @@ const developByOptimalRowOrColumn = (
     if (Math.abs(element) < 1e-10) {
       steps.push({
         stepNumber: stepCounter++,
-        title: t("matrixOperations.zeroElementTitle", { i: index + 1, j: j + 1 }),
+        title: t("matrixOperations.zeroElementTitle", {
+          i: index + 1,
+          j: j + 1,
+        }),
         description: t("matrixOperations.zeroElementDescription"),
         formula: t("matrixOperations.zeroContributionFormula"),
       });
@@ -702,21 +913,25 @@ const developByOptimalRowOrColumn = (
     const colToRemove = type === "fila" ? j : index;
     const sign = Math.pow(-1, rowToRemove + colToRemove);
     const signSymbol = sign === 1 ? "+" : "-";
-    const position = type === "fila" ? `[${index + 1},${j + 1}]` : `[${j + 1},${index + 1}]`;
+    const position =
+      type === "fila" ? `[${index + 1},${j + 1}]` : `[${j + 1},${index + 1}]`;
 
     steps.push({
       stepNumber: stepCounter++,
-      title: t("matrixOperations.processingElementTitle", { position, element }),
+      title: t("matrixOperations.processingElementTitle", {
+        position,
+        element,
+      }),
       description: t("matrixOperations.processingElementDescription", {
         signSymbol,
         sign,
         row: rowToRemove + 1,
-        col: colToRemove + 1
+        col: colToRemove + 1,
       }),
       formula: t("matrixOperations.cofactorFormula", {
         row: rowToRemove + 1,
         col: colToRemove + 1,
-        signSymbol
+        signSymbol,
       }),
     });
 
@@ -726,18 +941,20 @@ const developByOptimalRowOrColumn = (
       stepNumber: stepCounter++,
       title: t("matrixOperations.minorMatrixTitle", {
         row: rowToRemove + 1,
-        col: colToRemove + 1
+        col: colToRemove + 1,
       }),
       description: t("matrixOperations.minorMatrixDescription", {
         size: n - 1,
         row: rowToRemove + 1,
         col: colToRemove + 1,
-        message: n === 4 ? t("matrixOperations.minor3x3Message") : ""
+        message: n === 4 ? t("matrixOperations.minor3x3Message") : "",
       }),
-      matrices: [{
-        label: `\\text{${t("matrixOperations.minorMatrixLabel", { size: n - 1 })}}`,
-        matrix: minor
-      }],
+      matrices: [
+        {
+          label: `\\text{${t("matrixOperations.minorMatrixLabel", { size: n - 1 })}}`,
+          matrix: minor,
+        },
+      ],
     });
 
     let minorDet: number;
@@ -757,10 +974,13 @@ const developByOptimalRowOrColumn = (
         stepNumber: stepCounter++,
         title: t("matrixOperations.determinant2x2Title"),
         description: t("matrixOperations.determinant2x2Description", {
-          a, b, c, d,
+          a,
+          b,
+          c,
+          d,
           ad: a * d,
           bc: b * c,
-          minorDet
+          minorDet,
         }),
         formula: t("matrixOperations.determinant2x2Formula", { minorDet }),
       });
@@ -790,7 +1010,7 @@ const developByOptimalRowOrColumn = (
         cofactor,
         element,
         contribution,
-        det
+        det,
       }),
       formula: t("matrixOperations.contributionFormula", { contribution }),
     });
@@ -801,13 +1021,15 @@ const developByOptimalRowOrColumn = (
     title: t("matrixOperations.optimizedResultTitle"),
     description: t("matrixOperations.optimizedResultDescription", {
       type: translatedType,
-      index: index + 1
+      index: index + 1,
     }),
     formula: t("matrixOperations.finalDeterminantFormula", { det }),
-    matrices: [{
-      label: `\\text{${t("matrixOperations.determinantLabel")}}`,
-      matrix: [[det]]
-    }],
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.determinantLabel")}}`,
+        matrix: [[det]],
+      },
+    ],
   });
 
   return det;
@@ -815,7 +1037,7 @@ const developByOptimalRowOrColumn = (
 
 const calculateDeterminantWithCofactors = (
   matrix: Matrix,
-  steps: CalculationStep[]
+  steps: CalculationStep[],
 ): number => {
   const n = matrix.length;
   let stepCounter = 2;
@@ -825,10 +1047,12 @@ const calculateDeterminantWithCofactors = (
     title: t("matrixOperations.cofactorsMethodTitle"),
     description: t("matrixOperations.cofactorsMethodDescription"),
     formula: t("matrixOperations.cofactorsMethodFormula"),
-    matrices: [{
-      label: `\\text{${t("matrixOperations.matrixNxNLabel", { n })}}`,
-      matrix: matrix
-    }],
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.matrixNxNLabel", { n })}}`,
+        matrix: matrix,
+      },
+    ],
   });
 
   let det = 0;
@@ -842,18 +1066,18 @@ const calculateDeterminantWithCofactors = (
       stepNumber: stepCounter++,
       title: t("matrixOperations.processingElementCofactorsTitle", {
         j: j + 1,
-        element
+        element,
       }),
       description: t("matrixOperations.processingElementCofactorsDescription", {
         j: j + 1,
         element,
         signSymbol,
         sign,
-        exponent: j + 1
+        exponent: j + 1,
       }),
       formula: t("matrixOperations.cofactorFormulaCofactors", {
         j: j + 1,
-        signSymbol
+        signSymbol,
       }),
     });
 
@@ -862,15 +1086,17 @@ const calculateDeterminantWithCofactors = (
     steps.push({
       stepNumber: stepCounter++,
       title: t("matrixOperations.minorMatrixCofactorsTitle", {
-        j: j + 1
+        j: j + 1,
       }),
       description: t("matrixOperations.minorMatrixCofactorsDescription", {
-        j: j + 1
+        j: j + 1,
       }),
-      matrices: [{
-        label: `\\text{${t("matrixOperations.minorMatrixLabel", { size: n - 1 })}}`,
-        matrix: minor
-      }],
+      matrices: [
+        {
+          label: `\\text{${t("matrixOperations.minorMatrixLabel", { size: n - 1 })}}`,
+          matrix: minor,
+        },
+      ],
     });
 
     const minorDet = calculateDeterminantWithZerosSimple(minor);
@@ -881,7 +1107,7 @@ const calculateDeterminantWithCofactors = (
     steps.push({
       stepNumber: stepCounter++,
       title: t("matrixOperations.completeCalculationTitle", {
-        j: j + 1
+        j: j + 1,
       }),
       description: t("matrixOperations.completeCalculationDescription", {
         j: j + 1,
@@ -889,11 +1115,11 @@ const calculateDeterminantWithCofactors = (
         sign,
         cofactor,
         element,
-        contribution
+        contribution,
       }),
       formula: t("matrixOperations.contributionFormulaCofactors", {
         j: j + 1,
-        contribution
+        contribution,
       }),
     });
   }
@@ -903,49 +1129,58 @@ const calculateDeterminantWithCofactors = (
     title: t("matrixOperations.finalResultTitle"),
     description: t("matrixOperations.finalResultDescription"),
     formula: t("matrixOperations.finalDeterminantFormula", { det }),
-    matrices: [{
-      label: `\\text{${t("matrixOperations.determinantLabel")}}`,
-      matrix: [[det]]
-    }],
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.determinantLabel")}}`,
+        matrix: [[det]],
+      },
+    ],
   });
 
   return det;
 };
 
-const getMinorDeterminant = (matrix: Matrix, rowToRemove: number, colToRemove: number): Matrix => {
-  const result: Matrix = []
+const getMinorDeterminant = (
+  matrix: Matrix,
+  rowToRemove: number,
+  colToRemove: number,
+): Matrix => {
+  const result: Matrix = [];
 
   for (let i = 0; i < matrix.length; i++) {
-    if (i === rowToRemove) continue
+    if (i === rowToRemove) continue;
 
-    const newRow: number[] = []
+    const newRow: number[] = [];
     for (let j = 0; j < matrix[i].length; j++) {
-      if (j === colToRemove) continue
-      newRow.push(matrix[i][j])
+      if (j === colToRemove) continue;
+      newRow.push(matrix[i][j]);
     }
-    result.push(newRow)
+    result.push(newRow);
   }
 
-  return result
-}
+  return result;
+};
 
-const calculateDeterminantWithZerosSimple = (matrix: Matrix, rowOffset = 0): number => {
-  const n = matrix.length
-  if (n === 1) return matrix[0][0]
-  if (n === 2) return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0]
+const calculateDeterminantWithZerosSimple = (
+  matrix: Matrix,
+  rowOffset = 0,
+): number => {
+  const n = matrix.length;
+  if (n === 1) return matrix[0][0];
+  if (n === 2) return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
 
-  let det = 0
+  let det = 0;
   for (let j = 0; j < n; j++) {
-    const element = matrix[0][j]
-    if (Math.abs(element) < 1e-10) continue
+    const element = matrix[0][j];
+    if (Math.abs(element) < 1e-10) continue;
 
-    const minor = getMinorDeterminant(matrix, 0, j)
-    const minorDet = calculateDeterminantWithZerosSimple(minor, rowOffset + 1)
-    const sign = Math.pow(-1, 0 + j)
-    det += sign * element * minorDet
+    const minor = getMinorDeterminant(matrix, 0, j);
+    const minorDet = calculateDeterminantWithZerosSimple(minor, rowOffset + 1);
+    const sign = Math.pow(-1, 0 + j);
+    det += sign * element * minorDet;
   }
-  return det
-}
+  return det;
+};
 
 const getMinor = (matrix: Matrix, row: number, col: number): Matrix => {
   return matrix
@@ -983,7 +1218,12 @@ export const calculateAdjugate = (matrix: Matrix): MatrixOperationResult => {
     stepNumber: 1,
     title: t("matrixOperations.adjugateConceptTitle"),
     description: t("matrixOperations.adjugateConceptDescription"),
-    matrices: [{ label: "\\text{" + t("matrixOperations.originalMatrixLabel") + "}", matrix: matrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.originalMatrixLabel") + "}",
+        matrix: matrix,
+      },
+    ],
   });
 
   steps.push({
@@ -1005,7 +1245,7 @@ export const calculateAdjugate = (matrix: Matrix): MatrixOperationResult => {
       if (cofactorExamples.length < 4) {
         const signStr = sign > 0 ? "+" : "-";
         cofactorExamples.push(
-          `C_{${i + 1},${j + 1}} = ${signStr}\\det(\\text{${t("matrixOperations.minorLabel")}}) = ${signStr}(${minorDet}) = ${cofactors[i][j]} \\\\`
+          `C_{${i + 1},${j + 1}} = ${signStr}\\det(\\text{${t("matrixOperations.minorLabel")}}) = ${signStr}(${minorDet}) = ${cofactors[i][j]} \\\\`,
         );
       }
     }
@@ -1015,7 +1255,12 @@ export const calculateAdjugate = (matrix: Matrix): MatrixOperationResult => {
     stepNumber: 3,
     title: t("matrixOperations.cofactorsCalculationTitle"),
     description: t("matrixOperations.cofactorsCalculationDescription"),
-    matrices: [{ label: "\\text{" + t("matrixOperations.cofactorsMatrixLabel") + "}", matrix: cofactors }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.cofactorsMatrixLabel") + "}",
+        matrix: cofactors,
+      },
+    ],
     formula: cofactorExamples.join("\n"),
   });
 
@@ -1031,8 +1276,15 @@ export const calculateAdjugate = (matrix: Matrix): MatrixOperationResult => {
     description: t("matrixOperations.finalTranspositionDescription"),
     formula: t("matrixOperations.adjugateFormula"),
     matrices: [
-      { label: "\\text{" + t("matrixOperations.cofactorsMatrixLabel") + "}", matrix: cofactors },
-      { label: "\\text{" + t("matrixOperations.adjugateMatrixLabel") + "}", matrix: result, highlight: true },
+      {
+        label: "\\text{" + t("matrixOperations.cofactorsMatrixLabel") + "}",
+        matrix: cofactors,
+      },
+      {
+        label: "\\text{" + t("matrixOperations.adjugateMatrixLabel") + "}",
+        matrix: result,
+        highlight: true,
+      },
     ],
   });
 
@@ -1051,31 +1303,41 @@ export const calculateInverse = (matrix: Matrix): MatrixOperationResult => {
     stepNumber: 1,
     title: t("matrixOperations.whatIsInverseTitle"),
     description: t("matrixOperations.whatIsInverseDescription"),
-    matrices: [{ label: "\\text{" + t("matrixOperations.matrixALabel") + "}", matrix: matrix }],
+    matrices: [
+      {
+        label: "\\text{" + t("matrixOperations.matrixALabel") + "}",
+        matrix: matrix,
+      },
+    ],
   });
 
   const det = determinantRecursive(matrix);
   if (Math.abs(det) < 1e-10) {
     const message = t("matrixOperations.nonInvertibleError", {
       det: det.toFixed(6),
-    }) as string
+    }) as string;
 
-    throw new Error(message)
+    throw new Error(message);
   }
 
   steps.push({
     stepNumber: 2,
     title: t("matrixOperations.invertibilityCheckTitle"),
-    description: t("matrixOperations.invertibilityCheckDescription", { det: det.toFixed(2) }),
-    formula: t("matrixOperations.invertibilityCheckFormula", { det: det.toFixed(2) }),
+    description: t("matrixOperations.invertibilityCheckDescription", {
+      det: det.toFixed(2),
+    }),
+    formula: t("matrixOperations.invertibilityCheckFormula", {
+      det: det.toFixed(2),
+    }),
   });
 
   const cofactorMatrix = matrix.map((row, i) =>
     row.map((_, j) => {
       const minor = getMinor(matrix, i, j);
-      const cofactor = ((i + j) % 2 === 0 ? 1 : -1) * determinantRecursive(minor);
+      const cofactor =
+        ((i + j) % 2 === 0 ? 1 : -1) * determinantRecursive(minor);
       return cofactor;
-    })
+    }),
   );
 
   steps.push({
@@ -1084,7 +1346,10 @@ export const calculateInverse = (matrix: Matrix): MatrixOperationResult => {
     description: t("matrixOperations.cofactorsMatrixDescription"),
     formula: t("matrixOperations.cofactorFormulaTranspose"),
     matrices: [
-      { label: "\\text{" + t("matrixOperations.cofactorsMatrixLabel") + "}", matrix: cofactorMatrix },
+      {
+        label: "\\text{" + t("matrixOperations.cofactorsMatrixLabel") + "}",
+        matrix: cofactorMatrix,
+      },
     ],
   });
 
@@ -1095,20 +1360,22 @@ export const calculateInverse = (matrix: Matrix): MatrixOperationResult => {
     title: t("matrixOperations.adjugateMatrixTitle"),
     description: t("matrixOperations.adjugateMatrixDescription"),
     matrices: [
-      { label: "\\text{" + t("matrixOperations.adjugateMatrixLabel") + "}", matrix: adjMatrix },
+      {
+        label: "\\text{" + t("matrixOperations.adjugateMatrixLabel") + "}",
+        matrix: adjMatrix,
+      },
     ],
   });
 
-  const fractionText = `1/${det.toFixed(2)}`
+  const fractionText = `1/${det.toFixed(2)}`;
   const fractionKatex = `\\frac{1}{${det.toFixed(2)}}`;
 
   steps.push({
     stepNumber: 5,
     title: t("matrixOperations.inverseMatrixFractionTitle"),
-    description: t(
-      "matrixOperations.inverseMatrixFractionDescription",
-      { fractionText: fractionText }
-    ),
+    description: t("matrixOperations.inverseMatrixFractionDescription", {
+      fractionText: fractionText,
+    }),
     matrices: [
       {
         label: `A^{-1} = ${fractionKatex} \\times \\text{adj}(A)`,
@@ -1117,13 +1384,13 @@ export const calculateInverse = (matrix: Matrix): MatrixOperationResult => {
         highlight: true,
       },
     ],
-  })
+  });
 
   const result: Matrix = adjMatrix.map((row) =>
     row.map((cell) => {
       const value = cell / det;
       return Math.abs(value) < 1e-10 ? 0 : value;
-    })
+    }),
   );
 
   steps.push({
@@ -1167,7 +1434,12 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
     title: t("matrixOperations.rankDefinitionTitle"),
     description: t("matrixOperations.rankDefinitionDescription"),
     formula: t("matrixOperations.rankDefinitionFormula"),
-    matrices: [{ label: `\\text{${t("matrixOperations.originalMatrixLabel")}}`, matrix: matrix }],
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.originalMatrixLabel")}}`,
+        matrix: matrix,
+      },
+    ],
   });
 
   const maxOrder = Math.min(rows, cols);
@@ -1176,7 +1448,9 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
   let currentBaseRows: number[] = [];
   let currentBaseCols: number[] = [];
 
-  const isZeroMatrix = matrix.every(row => row.every(element => Math.abs(element) < 1e-10));
+  const isZeroMatrix = matrix.every((row) =>
+    row.every((element) => Math.abs(element) < 1e-10),
+  );
 
   if (isZeroMatrix) {
     steps.push({
@@ -1193,7 +1467,12 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
     stepNumber: stepCounter++,
     title: t("matrixOperations.searchingOrder1Title"),
     description: t("matrixOperations.searchingOrder1Description"),
-    matrices: [{ label: `\\text{${t("matrixOperations.examiningIndividualElementsLabel")}}`, matrix: matrix }],
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.examiningIndividualElementsLabel")}}`,
+        matrix: matrix,
+      },
+    ],
   });
 
   let firstNonZeroPos: [number, number] | null = null;
@@ -1219,34 +1498,49 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
       stepNumber: stepCounter++,
       title: t("matrixOperations.order1FoundTitle"),
       description: t("matrixOperations.order1FoundDescription", {
-        elements: nonZeroElements.join('\n'),
+        elements: nonZeroElements.join("\n"),
         row: i + 1,
         col: j + 1,
-        value: matrix[i][j]
+        value: matrix[i][j],
       }),
-      formula: t("matrixOperations.order1FoundFormula", { value: matrix[i][j] }),
-      matrices: [{
-        label: `\\text{${t("matrixOperations.minorOrder1Label", { row: i + 1, col: j + 1 })}}`,
-        matrix: [[matrix[i][j]]],
-        highlight: true
-      }],
+      formula: t("matrixOperations.order1FoundFormula", {
+        value: matrix[i][j],
+      }),
+      matrices: [
+        {
+          label: `\\text{${t("matrixOperations.minorOrder1Label", { row: i + 1, col: j + 1 })}}`,
+          matrix: [[matrix[i][j]]],
+          highlight: true,
+        },
+      ],
     });
   }
 
-  const evaluateMinorsWithDetail = (baseRows: number[], baseCols: number[], targetOrder: number): { found: boolean; submatrix: Matrix | null; newRows: number[]; newCols: number[]; det: number } => {
-
+  const evaluateMinorsWithDetail = (
+    baseRows: number[],
+    baseCols: number[],
+    targetOrder: number,
+  ): {
+    found: boolean;
+    submatrix: Matrix | null;
+    newRows: number[];
+    newCols: number[];
+    det: number;
+  } => {
     steps.push({
       stepNumber: stepCounter++,
-      title: t("matrixOperations.constructingMinorsTitle", { order: targetOrder }),
+      title: t("matrixOperations.constructingMinorsTitle", {
+        order: targetOrder,
+      }),
       description: t("matrixOperations.constructingMinorsDescription", {
         prevOrder: targetOrder - 1,
-        rows: baseRows.map(r => r + 1).join(','),
-        cols: baseCols.map(c => c + 1).join(','),
-        order: targetOrder
+        rows: baseRows.map((r) => r + 1).join(","),
+        cols: baseCols.map((c) => c + 1).join(","),
+        order: targetOrder,
       }),
       formula: t("matrixOperations.constructingMinorsFormula", {
         prevOrder: targetOrder - 1,
-        order: targetOrder
+        order: targetOrder,
       }),
     });
 
@@ -1270,15 +1564,19 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
 
         steps.push({
           stepNumber: stepCounter++,
-          title: t("matrixOperations.testingSpecificMinorTitle", { order: targetOrder }),
-          description: t("matrixOperations.testingSpecificMinorDescription", {
-            rows: extendedRows.map(r => r + 1).join(', '),
-            cols: extendedCols.map(c => c + 1).join(', ')
+          title: t("matrixOperations.testingSpecificMinorTitle", {
+            order: targetOrder,
           }),
-          matrices: [{
-            label: `\\text{${t("matrixOperations.minorOrderTestLabel", { order: targetOrder })}}`,
-            matrix: submatrix
-          }],
+          description: t("matrixOperations.testingSpecificMinorDescription", {
+            rows: extendedRows.map((r) => r + 1).join(", "),
+            cols: extendedCols.map((c) => c + 1).join(", "),
+          }),
+          matrices: [
+            {
+              label: `\\text{${t("matrixOperations.minorOrderTestLabel", { order: targetOrder })}}`,
+              matrix: submatrix,
+            },
+          ],
         });
 
         const detResult = calculateDeterminantWithSteps(submatrix);
@@ -1286,33 +1584,59 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
 
         steps.push({
           stepNumber: stepCounter++,
-          title: t("matrixOperations.calculatingDeterminantTitle", { order: targetOrder }),
-          description: t("matrixOperations.calculatingDeterminantDescription", { order: targetOrder }),
-          formula: t("matrixOperations.calculatingDeterminantFormula", { order: targetOrder, det }),
-          matrices: [{
-            label: `\\text{${t("matrixOperations.determinantResultLabel")}}`,
-            matrix: [[det]]
-          }],
+          title: t("matrixOperations.calculatingDeterminantTitle", {
+            order: targetOrder,
+          }),
+          description: t("matrixOperations.calculatingDeterminantDescription", {
+            order: targetOrder,
+          }),
+          formula: t("matrixOperations.calculatingDeterminantFormula", {
+            order: targetOrder,
+            det,
+          }),
+          matrices: [
+            {
+              label: `\\text{${t("matrixOperations.determinantResultLabel")}}`,
+              matrix: [[det]],
+            },
+          ],
         });
 
         if (Math.abs(det) > 1e-10) {
           steps.push({
             stepNumber: stepCounter++,
-            title: t("matrixOperations.minorFoundTitle", { order: targetOrder }),
-            description: t("matrixOperations.minorFoundDescription", { order: targetOrder }),
-            formula: t("matrixOperations.minorFoundFormula", { det, order: targetOrder }),
-            matrices: [{
-              label: `\\text{${t("matrixOperations.nonZeroMinorLabel", { order: targetOrder })}}`,
-              matrix: submatrix,
-              highlight: true
-            }],
+            title: t("matrixOperations.minorFoundTitle", {
+              order: targetOrder,
+            }),
+            description: t("matrixOperations.minorFoundDescription", {
+              order: targetOrder,
+            }),
+            formula: t("matrixOperations.minorFoundFormula", {
+              det,
+              order: targetOrder,
+            }),
+            matrices: [
+              {
+                label: `\\text{${t("matrixOperations.nonZeroMinorLabel", { order: targetOrder })}}`,
+                matrix: submatrix,
+                highlight: true,
+              },
+            ],
           });
 
-          return { found: true, submatrix, newRows: extendedRows, newCols: extendedCols, det };
+          return {
+            found: true,
+            submatrix,
+            newRows: extendedRows,
+            newCols: extendedCols,
+            det,
+          };
         } else {
           steps.push({
             stepNumber: stepCounter++,
-            title: t("matrixOperations.minorIsZeroTitle", { order: targetOrder }),
+            title: t("matrixOperations.minorIsZeroTitle", {
+              order: targetOrder,
+            }),
             description: t("matrixOperations.minorIsZeroDescription"),
             formula: t("matrixOperations.minorIsZeroFormula"),
           });
@@ -1328,7 +1652,11 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
       break;
     }
 
-    const result = evaluateMinorsWithDetail(currentBaseRows, currentBaseCols, order);
+    const result = evaluateMinorsWithDetail(
+      currentBaseRows,
+      currentBaseCols,
+      order,
+    );
 
     if (result.found && result.submatrix) {
       rank = order;
@@ -1342,7 +1670,7 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
           description: t("matrixOperations.maxOrderReachedDescription", {
             maxOrder,
             rows,
-            cols
+            cols,
           }),
           formula: t("matrixOperations.maxOrderReachedFormula", { maxOrder }),
         });
@@ -1354,9 +1682,11 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
         title: t("matrixOperations.resultForOrderTitle", { order }),
         description: t("matrixOperations.resultForOrderDescription", {
           order,
-          rank: order - 1
+          rank: order - 1,
         }),
-        formula: t("matrixOperations.resultForOrderFormula", { rank: order - 1 }),
+        formula: t("matrixOperations.resultForOrderFormula", {
+          rank: order - 1,
+        }),
       });
       break;
     }
@@ -1377,15 +1707,24 @@ export const calculateRank = (matrix: Matrix): MatrixOperationResult => {
     description: getRankInterpretation(rank, rows, cols),
     formula: t("matrixOperations.finalRankResultFormula", { rank }),
     matrices: [
-      { label: `\\text{${t("matrixOperations.originalMatrixLabel")}}`, matrix: matrix },
-      { label: `\\text{${t("matrixOperations.rankLabel", { rank })}}`, matrix: [[rank]], highlight: true },
+      {
+        label: `\\text{${t("matrixOperations.originalMatrixLabel")}}`,
+        matrix: matrix,
+      },
+      {
+        label: `\\text{${t("matrixOperations.rankLabel", { rank })}}`,
+        matrix: [[rank]],
+        highlight: true,
+      },
     ],
   });
 
   return { result: [[rank]], steps };
 };
 
-const calculateDeterminantWithSteps = (matrix: Matrix): MatrixOperationResult => {
+const calculateDeterminantWithSteps = (
+  matrix: Matrix,
+): MatrixOperationResult => {
   const n = matrix.length;
   let det = 0;
 
@@ -1417,14 +1756,18 @@ const calculateDeterminantSimple = (matrix: Matrix): number => {
   return a * e * i + b * f * g + c * d * h - c * e * g - b * d * i - a * f * h;
 };
 
-const getRankInterpretation = (rank: number, rows: number, cols: number): string => {
+const getRankInterpretation = (
+  rank: number,
+  rows: number,
+  cols: number,
+): string => {
   const maxPossibleRank = Math.min(rows, cols);
 
   if (rank === maxPossibleRank) {
     return t("matrixOperations.fullRankMessage", {
       maxRank: maxPossibleRank,
       rows,
-      cols
+      cols,
     });
   } else if (rank === 0) {
     return t("matrixOperations.zeroRankMessage");
@@ -1433,7 +1776,7 @@ const getRankInterpretation = (rank: number, rows: number, cols: number): string
       rank,
       maxRank: maxPossibleRank,
       dependentRows: rows - rank,
-      dependentCols: cols - rank
+      dependentCols: cols - rank,
     });
   }
 };
@@ -1454,21 +1797,28 @@ interface ParametricSolution {
   parametricForm?: string;
 }
 
-export const solveLinearSystem = (A: Matrix, B: Matrix): SystemSolutionResult => {
+export const solveLinearSystem = (
+  A: Matrix,
+  B: Matrix,
+): SystemSolutionResult => {
   const steps: CalculationStep[] = [];
   const n = A.length;
   const m = A[0]?.length || 0;
 
-  if (B[0]?.length !== 1) throw new Error(t("matrixOperations.columnVectorError"));
+  if (B[0]?.length !== 1)
+    throw new Error(t("matrixOperations.columnVectorError"));
   if (B.length !== n) throw new Error(t("matrixOperations.rowMismatchError"));
 
   steps.push({
     stepNumber: 1,
     title: t("matrixOperations.systemCheckTitle"),
-    description: t("matrixOperations.systemCheckDescription", { equations: n, unknowns: m }),
+    description: t("matrixOperations.systemCheckDescription", {
+      equations: n,
+      unknowns: m,
+    }),
     matrices: [
       { label: `\\text{${t("matrixOperations.matrixALabel")}}`, matrix: A },
-      { label: `\\text{${t("matrixOperations.vectorBLabel")}}`, matrix: B }
+      { label: `\\text{${t("matrixOperations.vectorBLabel")}}`, matrix: B },
     ],
   });
 
@@ -1478,7 +1828,11 @@ export const solveLinearSystem = (A: Matrix, B: Matrix): SystemSolutionResult =>
     title: t("matrixOperations.augmentedMatrixTitle"),
     description: t("matrixOperations.augmentedMatrixDescription"),
     matrices: [
-      { label: `\\text{${t("matrixOperations.augmentedMatrixLabel")}}`, matrix: augmentedMatrix, highlight: true }
+      {
+        label: `\\text{${t("matrixOperations.augmentedMatrixLabel")}}`,
+        matrix: augmentedMatrix,
+        highlight: true,
+      },
     ],
   });
 
@@ -1490,13 +1844,13 @@ export const solveLinearSystem = (A: Matrix, B: Matrix): SystemSolutionResult =>
     description: t("matrixOperations.rankCalculationDescription", {
       rankA,
       rankAugmented,
-      unknowns: m
+      unknowns: m,
     }),
     formula: t("matrixOperations.rankCalculationFormula", {
       rankA,
       rankAugmented,
-      unknowns: m
-    })
+      unknowns: m,
+    }),
   });
 
   let compatibility: string;
@@ -1508,8 +1862,11 @@ export const solveLinearSystem = (A: Matrix, B: Matrix): SystemSolutionResult =>
     steps.push({
       stepNumber: 4,
       title: t("matrixOperations.systemIncompatibleTitle"),
-      description: t("matrixOperations.systemIncompatibleDescription", { rankA, rankAugmented }),
-      formula: t("matrixOperations.systemIncompatibleFormula")
+      description: t("matrixOperations.systemIncompatibleDescription", {
+        rankA,
+        rankAugmented,
+      }),
+      formula: t("matrixOperations.systemIncompatibleFormula"),
     });
   } else if (rankA === m) {
     compatibility = t("matrixOperations.compatibleDetermined");
@@ -1524,9 +1881,11 @@ export const solveLinearSystem = (A: Matrix, B: Matrix): SystemSolutionResult =>
       description: t("matrixOperations.systemIndeterminateDescription", {
         rankA,
         unknowns: m,
-        degreesOfFreedom
+        degreesOfFreedom,
       }),
-      formula: t("matrixOperations.systemIndeterminateFormula", { degreesOfFreedom })
+      formula: t("matrixOperations.systemIndeterminateFormula", {
+        degreesOfFreedom,
+      }),
     });
 
     parametricSolution = solveIndeterminateSystemComplete(A, B, steps);
@@ -1536,7 +1895,11 @@ export const solveLinearSystem = (A: Matrix, B: Matrix): SystemSolutionResult =>
   return { solution, compatibility, steps, parametricSolution };
 };
 
-const solveWithGaussianElimination = (A: Matrix, B: Matrix, steps: CalculationStep[]): Matrix => {
+const solveWithGaussianElimination = (
+  A: Matrix,
+  B: Matrix,
+  steps: CalculationStep[],
+): Matrix => {
   const n = A.length;
   const m = A[0].length;
   let augmented: Matrix = A.map((row, i) => [...row, B[i][0]]);
@@ -1546,8 +1909,11 @@ const solveWithGaussianElimination = (A: Matrix, B: Matrix, steps: CalculationSt
     title: t("matrixOperations.gaussianEliminationTitle"),
     description: t("matrixOperations.gaussianEliminationDescription"),
     matrices: [
-      { label: `\\text{${t("matrixOperations.initialAugmentedMatrixLabel")}}`, matrix: augmented }
-    ]
+      {
+        label: `\\text{${t("matrixOperations.initialAugmentedMatrixLabel")}}`,
+        matrix: augmented,
+      },
+    ],
   });
 
   let stepCounter = steps.length + 1;
@@ -1563,14 +1929,23 @@ const solveWithGaussianElimination = (A: Matrix, B: Matrix, steps: CalculationSt
     if (Math.abs(augmented[maxRow][pivot]) < 1e-10) continue;
 
     if (maxRow !== pivot) {
-      [augmented[pivot], augmented[maxRow]] = [augmented[maxRow], augmented[pivot]];
+      [augmented[pivot], augmented[maxRow]] = [
+        augmented[maxRow],
+        augmented[pivot],
+      ];
       steps.push({
         stepNumber: stepCounter++,
         title: t("matrixOperations.rowSwapTitle"),
-        description: t("matrixOperations.rowSwapDescription", { row1: pivot + 1, row2: maxRow + 1 }),
+        description: t("matrixOperations.rowSwapDescription", {
+          row1: pivot + 1,
+          row2: maxRow + 1,
+        }),
         matrices: [
-          { label: `\\text{${t("matrixOperations.afterSwapLabel")}}`, matrix: augmented }
-        ]
+          {
+            label: `\\text{${t("matrixOperations.afterSwapLabel")}}`,
+            matrix: augmented,
+          },
+        ],
       });
     }
 
@@ -1583,10 +1958,16 @@ const solveWithGaussianElimination = (A: Matrix, B: Matrix, steps: CalculationSt
       steps.push({
         stepNumber: stepCounter++,
         title: t("matrixOperations.pivotNormalizationTitle"),
-        description: t("matrixOperations.pivotNormalizationDescription", { row: pivot + 1, pivotValue: pivotValue.toFixed(4) }),
+        description: t("matrixOperations.pivotNormalizationDescription", {
+          row: pivot + 1,
+          pivotValue: pivotValue.toFixed(4),
+        }),
         matrices: [
-          { label: `\\text{${t("matrixOperations.afterNormalizationLabel")}}`, matrix: augmented }
-        ]
+          {
+            label: `\\text{${t("matrixOperations.afterNormalizationLabel")}}`,
+            matrix: augmented,
+          },
+        ],
       });
     }
 
@@ -1601,10 +1982,17 @@ const solveWithGaussianElimination = (A: Matrix, B: Matrix, steps: CalculationSt
         steps.push({
           stepNumber: stepCounter++,
           title: t("matrixOperations.rowEliminationTitle", { row: i + 1 }),
-          description: t("matrixOperations.rowEliminationDescription", { row: i + 1, factor: factor.toFixed(4), pivotRow: pivot + 1 }),
+          description: t("matrixOperations.rowEliminationDescription", {
+            row: i + 1,
+            factor: factor.toFixed(4),
+            pivotRow: pivot + 1,
+          }),
           matrices: [
-            { label: `\\text{${t("matrixOperations.afterEliminationLabel")}}`, matrix: augmented }
-          ]
+            {
+              label: `\\text{${t("matrixOperations.afterEliminationLabel")}}`,
+              matrix: augmented,
+            },
+          ],
         });
       }
     }
@@ -1638,14 +2026,22 @@ const solveWithGaussianElimination = (A: Matrix, B: Matrix, steps: CalculationSt
     description: t("matrixOperations.backSubstitutionDescription"),
     formula: t("matrixOperations.backSubstitutionFormula"),
     matrices: [
-      { label: `\\text{${t("matrixOperations.finalSolutionLabel")}}`, matrix: solution, highlight: true }
-    ]
+      {
+        label: `\\text{${t("matrixOperations.finalSolutionLabel")}}`,
+        matrix: solution,
+        highlight: true,
+      },
+    ],
   });
 
   return solution;
 };
 
-const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: CalculationStep[]): ParametricSolution => {
+const solveIndeterminateSystemComplete = (
+  A: Matrix,
+  B: Matrix,
+  steps: CalculationStep[],
+): ParametricSolution => {
   const n = A.length;
   const m = A[0].length;
 
@@ -1656,8 +2052,11 @@ const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: Calculati
     title: t("matrixOperations.gaussJordanTitle"),
     description: t("matrixOperations.gaussJordanDescription"),
     matrices: [
-      { label: `\\text{${t("matrixOperations.initialAugmentedMatrixLabel")}}`, matrix: augmented }
-    ]
+      {
+        label: `\\text{${t("matrixOperations.initialAugmentedMatrixLabel")}}`,
+        matrix: augmented,
+      },
+    ],
   });
 
   let stepCounter = steps.length + 1;
@@ -1667,20 +2066,30 @@ const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: Calculati
   for (let col = 0; col < m && pivotRow < n; col++) {
     let maxRow = pivotRow;
     for (let i = pivotRow + 1; i < n; i++) {
-      if (Math.abs(augmented[i][col]) > Math.abs(augmented[maxRow][col])) maxRow = i;
+      if (Math.abs(augmented[i][col]) > Math.abs(augmented[maxRow][col]))
+        maxRow = i;
     }
 
     if (Math.abs(augmented[maxRow][col]) < 1e-10) continue;
 
     if (maxRow !== pivotRow) {
-      [augmented[pivotRow], augmented[maxRow]] = [augmented[maxRow], augmented[pivotRow]];
+      [augmented[pivotRow], augmented[maxRow]] = [
+        augmented[maxRow],
+        augmented[pivotRow],
+      ];
       steps.push({
         stepNumber: stepCounter++,
         title: t("matrixOperations.rowSwapTitle"),
-        description: t("matrixOperations.rowSwapDescription", { row1: pivotRow + 1, row2: maxRow + 1 }),
+        description: t("matrixOperations.rowSwapDescription", {
+          row1: pivotRow + 1,
+          row2: maxRow + 1,
+        }),
         matrices: [
-          { label: `\\text{${t("matrixOperations.afterSwapLabel")}}`, matrix: augmented }
-        ]
+          {
+            label: `\\text{${t("matrixOperations.afterSwapLabel")}}`,
+            matrix: augmented,
+          },
+        ],
       });
     }
 
@@ -1690,24 +2099,38 @@ const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: Calculati
     steps.push({
       stepNumber: stepCounter++,
       title: t("matrixOperations.pivotNormalizationTitle", { col: col + 1 }),
-      description: t("matrixOperations.pivotNormalizationDescription", { row: pivotRow + 1, pivotValue: pivotValue.toFixed(4) }),
+      description: t("matrixOperations.pivotNormalizationDescription", {
+        row: pivotRow + 1,
+        pivotValue: pivotValue.toFixed(4),
+      }),
       matrices: [
-        { label: `\\text{${t("matrixOperations.afterNormalizationLabel")}}`, matrix: augmented }
-      ]
+        {
+          label: `\\text{${t("matrixOperations.afterNormalizationLabel")}}`,
+          matrix: augmented,
+        },
+      ],
     });
 
     for (let i = 0; i < n; i++) {
       if (i !== pivotRow && Math.abs(augmented[i][col]) > 1e-10) {
         const factor = augmented[i][col];
-        for (let j = col; j <= m; j++) augmented[i][j] -= factor * augmented[pivotRow][j];
+        for (let j = col; j <= m; j++)
+          augmented[i][j] -= factor * augmented[pivotRow][j];
 
         steps.push({
           stepNumber: stepCounter++,
           title: t("matrixOperations.rowEliminationTitle", { row: i + 1 }),
-          description: t("matrixOperations.rowEliminationDescription", { row: i + 1, factor: factor.toFixed(4), pivotRow: pivotRow + 1 }),
+          description: t("matrixOperations.rowEliminationDescription", {
+            row: i + 1,
+            factor: factor.toFixed(4),
+            pivotRow: pivotRow + 1,
+          }),
           matrices: [
-            { label: `\\text{${t("matrixOperations.afterEliminationLabel")}}`, matrix: augmented }
-          ]
+            {
+              label: `\\text{${t("matrixOperations.afterEliminationLabel")}}`,
+              matrix: augmented,
+            },
+          ],
         });
       }
     }
@@ -1717,7 +2140,8 @@ const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: Calculati
   }
 
   const freeVariables: number[] = [];
-  for (let col = 0; col < m; col++) if (!pivotColumns.includes(col)) freeVariables.push(col);
+  for (let col = 0; col < m; col++)
+    if (!pivotColumns.includes(col)) freeVariables.push(col);
 
   const degreesOfFreedom = freeVariables.length;
   const particularSolution: Matrix = createMatrix(m, 1);
@@ -1738,42 +2162,68 @@ const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: Calculati
   }
 
   let parametricForm = "X = X_p";
-  const paramNames = ['t', 's', 'u', 'v', 'w'];
-  for (let i = 0; i < homogeneousBasis.length; i++) parametricForm += ` + ${paramNames[i]} \\cdot X_${i + 1}`;
+  const paramNames = ["t", "s", "u", "v", "w"];
+  for (let i = 0; i < homogeneousBasis.length; i++)
+    parametricForm += ` + ${paramNames[i]} \\cdot X_${i + 1}`;
 
   steps.push({
     stepNumber: stepCounter++,
     title: t("matrixOperations.parametricSolutionTitle"),
-    description: t("matrixOperations.parametricSolutionDescription", { degreesOfFreedom, parametricForm }),
+    description: t("matrixOperations.parametricSolutionDescription", {
+      degreesOfFreedom,
+      parametricForm,
+    }),
     formula: parametricForm,
     matrices: [
-      { label: `\\text{${t("matrixOperations.reducedRowEchelonLabel")}}`, matrix: augmented },
-      { label: `\\text{${t("matrixOperations.particularSolutionLabel")}}`, matrix: particularSolution, highlight: true }
-    ]
+      {
+        label: `\\text{${t("matrixOperations.reducedRowEchelonLabel")}}`,
+        matrix: augmented,
+      },
+      {
+        label: `\\text{${t("matrixOperations.particularSolutionLabel")}}`,
+        matrix: particularSolution,
+        highlight: true,
+      },
+    ],
   });
 
   for (let i = 0; i < homogeneousBasis.length; i++) {
     steps.push({
       stepNumber: stepCounter++,
-      title: t("matrixOperations.homogeneousBasisVectorTitle", { index: i + 1 }),
-      description: t("matrixOperations.homogeneousBasisVectorDescription", { index: i + 1, paramName: paramNames[i] }),
+      title: t("matrixOperations.homogeneousBasisVectorTitle", {
+        index: i + 1,
+      }),
+      description: t("matrixOperations.homogeneousBasisVectorDescription", {
+        index: i + 1,
+        paramName: paramNames[i],
+      }),
       matrices: [
-        { label: `\\text{${t("matrixOperations.homogeneousBasisVectorLabel", { index: i + 1 })}}`, matrix: homogeneousBasis[i] }
-      ]
+        {
+          label: `\\text{${t("matrixOperations.homogeneousBasisVectorLabel", { index: i + 1 })}}`,
+          matrix: homogeneousBasis[i],
+        },
+      ],
     });
   }
 
   if (homogeneousBasis.length > 0) {
     const exampleSolution = createMatrix(m, 1);
-    for (let i = 0; i < m; i++) exampleSolution[i][0] = particularSolution[i][0] + homogeneousBasis[0][i][0];
+    for (let i = 0; i < m; i++)
+      exampleSolution[i][0] =
+        particularSolution[i][0] + homogeneousBasis[0][i][0];
 
     steps.push({
       stepNumber: stepCounter++,
       title: t("matrixOperations.exampleGeneralSolutionTitle"),
-      description: t("matrixOperations.exampleGeneralSolutionDescription", { paramName: paramNames[0] }),
+      description: t("matrixOperations.exampleGeneralSolutionDescription", {
+        paramName: paramNames[0],
+      }),
       matrices: [
-        { label: `\\text{${t("matrixOperations.exampleGeneralSolutionLabel", { paramName: paramNames[0] })}}`, matrix: exampleSolution }
-      ]
+        {
+          label: `\\text{${t("matrixOperations.exampleGeneralSolutionLabel", { paramName: paramNames[0] })}}`,
+          matrix: exampleSolution,
+        },
+      ],
     });
   }
 
@@ -1782,7 +2232,7 @@ const solveIndeterminateSystemComplete = (A: Matrix, B: Matrix, steps: Calculati
     homogeneousBasis,
     freeVariables,
     degreesOfFreedom,
-    parametricForm
+    parametricForm,
   };
 };
 
@@ -1792,7 +2242,7 @@ const calculateRankSimple = (matrix: Matrix): number => {
   const n = matrix.length;
   const m = matrix[0].length;
 
-  const temp: Matrix = matrix.map(row => [...row]);
+  const temp: Matrix = matrix.map((row) => [...row]);
   let rank = 0;
 
   for (let col = 0; col < m && rank < n; col++) {
@@ -1824,14 +2274,20 @@ const calculateRankSimple = (matrix: Matrix): number => {
   return rank;
 };
 
-export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutionResult => {
+export const solveLinearSystemWithCramer = (
+  A: Matrix,
+  B: Matrix,
+): SystemSolutionResult => {
   const steps: CalculationStep[] = [];
   const n = A.length;
   const m = A[0]?.length || 0;
 
-  if (B[0]?.length !== 1) throw new Error("El vector B debe ser una matriz columna (n×1)");
-  if (B.length !== n) throw new Error("El número de filas de A y B deben coincidir");
-  if (n !== m) throw new Error("La regla de Cramer solo se aplica a sistemas cuadrados");
+  if (B[0]?.length !== 1)
+    throw new Error("El vector B debe ser una matriz columna (n×1)");
+  if (B.length !== n)
+    throw new Error("El número de filas de A y B deben coincidir");
+  if (n !== m)
+    throw new Error("La regla de Cramer solo se aplica a sistemas cuadrados");
 
   steps.push({
     stepNumber: 1,
@@ -1839,18 +2295,18 @@ export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutio
     description: t("matrixOperations.cramerVerificationDescription", { n }),
     matrices: [
       { label: `\\text{${t("matrixOperations.coeffMatrixLabel")}}`, matrix: A },
-      { label: `\\text{${t("matrixOperations.vectorBLabel")}}`, matrix: B }
-    ]
+      { label: `\\text{${t("matrixOperations.vectorBLabel")}}`, matrix: B },
+    ],
   });
 
   steps.push({
     stepNumber: 2,
     title: t("matrixOperations.determinantStepTitle"),
     description: t("matrixOperations.determinantStepDescription"),
-    formula: t("matrixOperations.formulaXi")
+    formula: t("matrixOperations.formulaXi"),
   });
 
-  const detAResult = calculateDeterminant(A, 'cofactors');
+  const detAResult = calculateDeterminant(A, "cofactors");
   const detA = detAResult.result[0][0];
 
   steps.push({
@@ -1858,24 +2314,37 @@ export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutio
     title: t("matrixOperations.determinantResultTitle"),
     description: t("matrixOperations.determinantResultDescription"),
     formula: `\\det(A) = ${detA}`,
-    matrices: [{ label: `\\text{${t("matrixOperations.determinantResultLabel")}}`, matrix: [[detA]], highlight: true }]
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.determinantResultLabel")}}`,
+        matrix: [[detA]],
+        highlight: true,
+      },
+    ],
   });
 
   if (Math.abs(detA) < 1e-10) {
     steps.push({
       stepNumber: 4,
       title: t("matrixOperations.cramerNotApplicableTitle"),
-      description: t("matrixOperations.cramerNotApplicableDescription", { detA }),
-      formula: t("matrixOperations.cramerNotApplicableFormula")
+      description: t("matrixOperations.cramerNotApplicableDescription", {
+        detA,
+      }),
+      formula: t("matrixOperations.cramerNotApplicableFormula"),
     });
-    return { solution: null, compatibility: t("matrixOperations.cramerNotApplicable"), steps, parametricSolution: undefined };
+    return {
+      solution: null,
+      compatibility: t("matrixOperations.cramerNotApplicable"),
+      steps,
+      parametricSolution: undefined,
+    };
   }
 
   steps.push({
     stepNumber: 4,
     title: t("matrixOperations.cramerApplicableTitle"),
     description: t("matrixOperations.cramerApplicableDescription", { detA }),
-    formula: t("matrixOperations.cramerApplicableFormula", { detA })
+    formula: t("matrixOperations.cramerApplicableFormula", { detA }),
   });
 
   const solution: Matrix = createMatrix(n, 1);
@@ -1883,7 +2352,7 @@ export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutio
 
   for (let i = 0; i < n; i++) {
     const Ai: Matrix = A.map((row, rowIndex) =>
-      row.map((value, colIndex) => (colIndex === i ? B[rowIndex][0] : value))
+      row.map((value, colIndex) => (colIndex === i ? B[rowIndex][0] : value)),
     );
 
     steps.push({
@@ -1894,12 +2363,12 @@ export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutio
         {
           label: `A_{${i + 1}} = A \\text{ con columna ${i + 1} } \\to B`,
           matrix: Ai,
-          highlight: true
-        }
-      ]
+          highlight: true,
+        },
+      ],
     });
 
-    const detAiResult = calculateDeterminant(Ai, 'cofactors');
+    const detAiResult = calculateDeterminant(Ai, "cofactors");
     const detAi = detAiResult.result[0][0];
 
     steps.push({
@@ -1907,7 +2376,7 @@ export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutio
       title: t("matrixOperations.detAiTitle", { i: i + 1 }),
       description: t("matrixOperations.detAiDescription", { i: i + 1 }),
       formula: `\\det(A_{${i + 1}}) = ${detAi}`,
-      matrices: [{ label: `\\det(A_{${i + 1}})`, matrix: [[detAi]] }]
+      matrices: [{ label: `\\det(A_{${i + 1}})`, matrix: [[detAi]] }],
     });
 
     const xi = detAi / detA;
@@ -1918,10 +2387,12 @@ export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutio
       title: t("matrixOperations.calculateXiTitle", { i: i + 1 }),
       description: t("matrixOperations.calculateXiDescription", { i: i + 1 }),
       formula: `x_{${i + 1}} = \\frac{${detAi}}{${detA}} = ${xi.toFixed(6)}`,
-      matrices: [{ label: `x_{${i + 1}}`, matrix: [[xi]], highlight: true }]
+      matrices: [{ label: `x_{${i + 1}}`, matrix: [[xi]], highlight: true }],
     });
 
-    cramerCalculations.push(`x_{${i + 1}} = \\frac{${detAi}}{${detA}} = ${xi.toFixed(6)}`);
+    cramerCalculations.push(
+      `x_{${i + 1}} = \\frac{${detAi}}{${detA}} = ${xi.toFixed(6)}`,
+    );
   }
 
   steps.push({
@@ -1929,34 +2400,45 @@ export const solveLinearSystemWithCramer = (A: Matrix, B: Matrix): SystemSolutio
     title: t("matrixOperations.cramerSummaryTitle"),
     description: t("matrixOperations.cramerSummaryDescription"),
     formula: cramerCalculations.join(" \\\\ "),
-    matrices: [{ label: `\\text{${t("matrixOperations.finalSolutionLabel")}}`, matrix: solution, highlight: true }]
+    matrices: [
+      {
+        label: `\\text{${t("matrixOperations.finalSolutionLabel")}}`,
+        matrix: solution,
+        highlight: true,
+      },
+    ],
   });
 
   steps.push({
     stepNumber: 6 + n * 3,
     title: t("matrixOperations.verificationTitle"),
     description: t("matrixOperations.verificationDescription"),
-    formula: t("matrixOperations.verificationFormula")
+    formula: t("matrixOperations.verificationFormula"),
   });
 
   const verification = multiplyMatrices(A, solution);
-  const error = verification.result.map((row, i) => Math.abs(row[0] - B[i][0])).reduce((sum, err) => sum + err, 0);
+  const error = verification.result
+    .map((row, i) => Math.abs(row[0] - B[i][0]))
+    .reduce((sum, err) => sum + err, 0);
   const satisfies = error < 1e-8 ? "sí" : "no";
 
   steps.push({
     stepNumber: 7 + n * 3,
     title: t("matrixOperations.verificationResultTitle"),
-    description: t("matrixOperations.verificationResultDescription", { error: error.toFixed(10), satisfies }),
+    description: t("matrixOperations.verificationResultDescription", {
+      error: error.toFixed(10),
+      satisfies,
+    }),
     matrices: [
       { label: "A \\cdot X", matrix: verification.result },
-      { label: "B", matrix: B }
-    ]
+      { label: "B", matrix: B },
+    ],
   });
 
   return {
     solution,
     compatibility: t("matrixOperations.cramerCompatibility"),
     steps,
-    parametricSolution: undefined
+    parametricSolution: undefined,
   };
 };

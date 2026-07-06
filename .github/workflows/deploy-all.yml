@@ -4,13 +4,13 @@ run-name: Build Code
 
 on:
   push:
-    branches: ['main']
+    branches: ["main"]
 
 permissions:
   contents: write
 
 concurrency:
-  group: 'build-deploy'
+  group: "build-deploy"
   cancel-in-progress: true
 
 jobs:
